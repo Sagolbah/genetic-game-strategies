@@ -5,10 +5,14 @@ import ru.ifmo.genome.gamestrategies.tictactoe.FieldStatus
 import ru.ifmo.genome.gamestrategies.tictactoe.TicTacToeEnvironment
 import kotlin.random.Random
 
-class GeneticTicTacToeStrategy(override val env: TicTacToeEnvironment) : TicTacToeStrategy(env), Individual {
+class GeneticTicTacToeStrategy(override val env: TicTacToeEnvironment) : TicTacToeStrategy(env), Individual<GeneticTicTacToeStrategy> {
     private val actions: Array<Action> = Array(9) { Action() }
     private val mutationRate = 0.02
     private var fitness = 0
+
+    companion object {
+        val fieldStatuses = FieldStatus.values()
+    }
 
     override fun makeTurn(): Pair<Int, Int> {
         for (action in actions) {
@@ -19,8 +23,12 @@ class GeneticTicTacToeStrategy(override val env: TicTacToeEnvironment) : TicTacT
         return randomMove()
     }
 
-    override fun mutate() {
-        actions.forEach { x -> x.doMutation() }
+    override fun mutate(): GeneticTicTacToeStrategy {
+        val newStrategy = GeneticTicTacToeStrategy(env)
+        for (i in actions.indices) {
+            newStrategy.setAction(i, actions[i].doMutation())
+        }
+        return newStrategy
     }
 
     override fun getFitness(): Int {
@@ -50,8 +58,7 @@ class GeneticTicTacToeStrategy(override val env: TicTacToeEnvironment) : TicTacT
     inner class Action {
         // Condition check: whether target cell has given status
         val actionParameters: IntArray
-        val fieldStatuses = FieldStatus.values()
-        var fieldStatus: FieldStatus = fieldStatuses[Random.nextInt(fieldStatuses.size)]
+        val fieldStatus: FieldStatus
 
         fun matches(): Boolean {
             return env.getField()[getColumn()][getRow()] == fieldStatus
@@ -60,11 +67,12 @@ class GeneticTicTacToeStrategy(override val env: TicTacToeEnvironment) : TicTacT
 
         constructor() {
             actionParameters = IntArray(4) { Random.nextInt(3) }
+            fieldStatus = fieldStatuses[Random.nextInt(fieldStatuses.size)]
         }
 
-        constructor(rhs: Action) {
-            actionParameters = rhs.actionParameters
-            fieldStatus = rhs.fieldStatus
+        constructor(actionParameters: IntArray, fieldStatus: FieldStatus) {
+            this.actionParameters = actionParameters
+            this.fieldStatus = fieldStatus
         }
 
         fun getColumn(): Int {
@@ -83,15 +91,19 @@ class GeneticTicTacToeStrategy(override val env: TicTacToeEnvironment) : TicTacT
             return actionParameters[3]
         }
 
-        fun doMutation() {
+        fun doMutation(): Action {
+            val newParams = actionParameters.copyOf()
             for (i in 0..3) {
                 if (Random.nextDouble() < mutationRate) {
-                    actionParameters[i] = Random.nextInt(3)
+                    newParams[i] = Random.nextInt(3)
                 }
             }
-            if (Random.nextDouble() < mutationRate) {
-                fieldStatus = fieldStatuses[Random.nextInt(fieldStatuses.size)]
+            val newFieldStatus: FieldStatus = if (Random.nextDouble() < mutationRate) {
+                fieldStatuses[Random.nextInt(fieldStatuses.size)]
+            } else {
+                fieldStatus
             }
+            return Action(newParams, newFieldStatus)
         }
     }
 

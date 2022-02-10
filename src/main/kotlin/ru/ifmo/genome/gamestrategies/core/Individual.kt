@@ -1,10 +1,15 @@
 package ru.ifmo.genome.gamestrategies.core
 
-interface Individual {
+/**
+ * Individual participating in genetic algorithm
+ * Implementations must be immutable.
+ */
+interface Individual<T: Individual<T>> {
     /**
-     * Performs mutation in-place
+     * Performs mutation.
+     * @return new mutated individual
      */
-    fun mutate()
+    fun mutate(): T
 
     /**
      * Get fitness of individual.

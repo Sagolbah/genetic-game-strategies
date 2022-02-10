@@ -4,7 +4,7 @@ package ru.ifmo.genome.gamestrategies.core
  * Abstract class for genetic algorithm
  * @param env Environment used to evaluate fitness
  */
-abstract class GeneticAlgorithm<T : Individual>(protected open val env: Environment<T>) {
+abstract class GeneticAlgorithm<T : Individual<T>>(protected open val env: Environment<T>) {
     protected var epoch = 0
     protected var currentPopulation = emptyList<T>()
 
@@ -20,20 +20,21 @@ abstract class GeneticAlgorithm<T : Individual>(protected open val env: Environm
         currentPopulation.forEach { x -> x.setFitness(env.fit(x)) }
     }
 
-    open fun mutate() {
-        currentPopulation.forEach { x -> x.mutate() }
+    open fun mutate() : List<T> {
+        return currentPopulation.map { x -> x.mutate() }.toList()
     }
 
-    open fun evaluate() {
+    open fun evaluate() : List<T> {
         currentPopulation = initPopulation()
         evaluatePopulation()
         while (!terminateCondition()) {
             epoch++
             currentPopulation = selectParents()
             currentPopulation = crossover()
-            mutate()
+            currentPopulation = mutate()
             evaluatePopulation()
         }
+        return currentPopulation
     }
 
     fun getGenerationNumber(): Int {

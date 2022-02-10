@@ -47,6 +47,9 @@ class TicTacToeGeneticAlgorithm(override val env: TicTacToeEnvironment) :
     }
 
     override fun crossover(): List<GeneticTicTacToeStrategy> {
+        return currentPopulation
+    }
+        /*
         val population = currentPopulation.toMutableList()
         while (population.size != 16) {
             population.add(doCrossover(population[0], population[1]))
@@ -67,5 +70,5 @@ class TicTacToeGeneticAlgorithm(override val env: TicTacToeEnvironment) :
         newIndividual.setAction(secondaryGene, secondary.Action(secondary.getActions()[secondaryGene]))
         newIndividual.mutate()
         return newIndividual
-    }
+    }*/
 }
