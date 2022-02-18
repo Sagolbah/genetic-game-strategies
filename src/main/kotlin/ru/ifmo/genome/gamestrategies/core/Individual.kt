@@ -13,7 +13,7 @@ interface Individual<T: Individual<T>> {
 
     /**
      * Get fitness of individual.
-     * If individual was not fit, result may be
+     * If individual was not fit, result may be undefined
      *
      * @return fitness of individual, if defined
      */

@@ -14,6 +14,8 @@ repositories {
 
 dependencies {
     testImplementation(kotlin("test"))
+    implementation("io.ktor:ktor-client-websockets:1.6.7")
+    implementation("io.ktor:ktor-client-cio:1.6.7")
 }
 
 tasks.test {
