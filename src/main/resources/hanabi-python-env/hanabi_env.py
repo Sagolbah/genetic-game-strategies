@@ -2,28 +2,80 @@
 
 import sys
 import getopt
+import json
 import asyncio
 import websockets
+import random
 from hanabi_learning_environment import rl_env
-from hanabi_learning_environment.agents.random_agent import RandomAgent
+
+
+from hanabi_learning_environment.rl_env import Agent
+
+def parseAction(str):
+  return str.split('.')[-1]
+
+
+class MyAgent(Agent):
+  """Agent that applies a simple heuristic."""
+
+  def __init__(self, config, strategy, *args, **kwargs):
+    """Initialize the agent."""
+    self.config = config
+    self.strategy = json.loads(strategy)
+    # Extract max info tokens or set default to 8.
+    self.max_information_tokens = config.get('information_tokens', 8)
+
+  @staticmethod
+  def playable_card(card, fireworks):
+    """A card is playable if it can be placed on the fireworks pile."""
+    return card['rank'] == fireworks[card['color']]
+
+  def act(self, observation):
+    """Act based on an observation."""
+    if observation['current_player_offset'] != 0:
+      return None
+
+    # Check memorized hint
+    for card_index, hint in enumerate(observation['card_knowledge'][0]):
+      if hint['color'] is not None and hint['rank'] is not None and observation['fireworks'][hint['color']] == hint['rank']:
+        return {'action_type': 'PLAY', 'card_index': card_index}
+
+    currentNode = self.strategy
+    # Use genetic strategy. TODO: Use Switch/Case approach for condition&action parsing
+    while True:
+      currentCondition = parseAction(currentNode['condition']['type'])
+      if currentCondition == "HasHintTokens" and observation['information_tokens'] >= currentNode['condition']['requiredTokens']:
+        actionType = parseAction(self.strategy['action']['type'])
+        if actionType == "RandomHint":
+          moves = list(filter(lambda x: x['action_type'].startswith('REVEAL'), observation['legal_moves']))
+          return random.choice(moves)
+      next = currentNode["nextNode"]
+      if next is None:
+        break
+
+    # Default action
+    return {'action_type': 'DISCARD', 'card_index': 0}
+
+
 
 
 class Runner(object):
   """Runner class."""
 
-  def __init__(self, flags):
+  def __init__(self, flags, strategy):
     """Initialize runner."""
     self.flags = flags
     self.agent_config = {'players': flags['players']}
     self.environment = rl_env.make('Hanabi-Full', num_players=flags['players'])
-    self.agent_class = RandomAgent
+    self.strategy = strategy
+    self.agent_class = MyAgent
 
   def run(self):
     """Run episodes."""
     rewards = []
     for episode in range(self.flags['num_episodes']):
       observations = self.environment.reset()
-      agents = [self.agent_class(self.agent_config)
+      agents = [self.agent_class(self.agent_config, self.strategy)
                 for _ in range(self.flags['players'])]
       done = False
       episode_reward = 0
@@ -49,8 +101,10 @@ class Runner(object):
 
 
 async def fit(websocket):
+    message = await websocket.recv()
+    print(message)
     flags = {'players': 2, 'num_episodes': 1}
-    runner = Runner(flags)
+    runner = Runner(flags, message)
     score = runner.run()
     await websocket.send(str(score))
     print(f">>> {score}")
