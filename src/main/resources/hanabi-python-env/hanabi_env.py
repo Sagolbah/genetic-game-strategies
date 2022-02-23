@@ -42,16 +42,14 @@ class MyAgent(Agent):
 
     currentNode = self.strategy
     # Use genetic strategy. TODO: Use Switch/Case approach for condition&action parsing
-    while True:
+    while currentNode is not None:
       currentCondition = parseAction(currentNode['condition']['type'])
       if currentCondition == "HasHintTokens" and observation['information_tokens'] >= currentNode['condition']['requiredTokens']:
         actionType = parseAction(self.strategy['action']['type'])
         if actionType == "RandomHint":
           moves = list(filter(lambda x: x['action_type'].startswith('REVEAL'), observation['legal_moves']))
           return random.choice(moves)
-      next = currentNode["nextNode"]
-      if next is None:
-        break
+      currentNode = currentNode["nextNode"]
 
     # Default action
     return {'action_type': 'DISCARD', 'card_index': 0}
