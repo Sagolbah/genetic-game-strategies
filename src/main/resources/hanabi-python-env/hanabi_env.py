@@ -7,7 +7,7 @@ import asyncio
 import websockets
 import random
 from hanabi_learning_environment import rl_env
-from hanabi_actions import action
+from hanabi_actions import action, terminal_safe_legal_random
 
 from hanabi_learning_environment.rl_env import Agent
 
@@ -16,7 +16,7 @@ def parse_action(name):
     return name.split('.')[-1]
 
 
-class MyAgent(Agent):
+class HanabiAgent(Agent):
     """Agent that applies a simple heuristic."""
 
     def __init__(self, config, strategy, *args, **kwargs):
@@ -26,23 +26,23 @@ class MyAgent(Agent):
         # Extract max info tokens or set default to 8.
         self.max_information_tokens = config.get('information_tokens', 8)
 
-    @staticmethod
-    def playable_card(card, fireworks):
-        """A card is playable if it can be placed on the fireworks pile."""
-        return card['rank'] == fireworks[card['color']]
-
     def act(self, observation):
         """Act based on an observation."""
         if observation['current_player_offset'] != 0:
             return None
 
         for rule in self.strategy:
+            action_type = parse_action(rule['type'])
             result = action(observation, parse_action(rule['type']))
             if result is not None:
+                print('Agent: {}, Action type: {}, Final action: {}'.format(observation['current_player'],
+                                                                            action_type, result))
                 return result
-
-        # Placeholder discard
-        return {'action_type': 'DISCARD', 'card_index': 0}
+        # Legal random action if all rules were not applicable
+        result = terminal_safe_legal_random(observation)
+        print('Agent: {}, Action type: Terminal legal random, Final action: {}'.format(observation['current_player'],
+                                                                                       result))
+        return result
 
 
 class Runner(object):
@@ -54,7 +54,7 @@ class Runner(object):
         self.agent_config = {'players': flags['players']}
         self.environment = rl_env.make('Hanabi-Full', num_players=flags['players'])
         self.strategy = strategy
-        self.agent_class = MyAgent
+        self.agent_class = HanabiAgent
 
     def run(self):
         """Run episodes."""
@@ -75,8 +75,6 @@ class Runner(object):
                     else:
                         assert action is None
                 # Make an environment step.
-                print('Agent: {} action: {}'.format(observation['current_player'],
-                                                    current_player_action))
                 observations, reward, done, _ = self.environment.step(
                     current_player_action)
                 episode_reward += reward

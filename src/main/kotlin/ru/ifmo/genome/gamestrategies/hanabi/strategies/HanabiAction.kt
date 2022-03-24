@@ -33,6 +33,7 @@ sealed class HanabiAction {
     object GreedyPlayableHint : HanabiAction()
 
     /**
+     * TEST - CAN BE REMOVED LATER
      * Gives rank hint.
      * The reason that only rank hints are used is that "Rank 1-hint" guarantees good early-game.
      * @param rank rank of hint
@@ -65,6 +66,8 @@ sealed class HanabiAction {
 
     /**
      * Play a safe card. Card is safe if playing it will not result in life token loss.
+     * For example, card is safe if color&rank is known, and it is available.
+     * Another example - card with rank 1 on empty table.
      */
     @Serializable
     object SafePlay : HanabiAction()

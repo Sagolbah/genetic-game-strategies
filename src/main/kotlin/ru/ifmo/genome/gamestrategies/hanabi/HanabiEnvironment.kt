@@ -9,16 +9,16 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.encodeToString as jsonEncode
 import ru.ifmo.genome.gamestrategies.core.Environment
-import ru.ifmo.genome.gamestrategies.hanabi.strategies.HanabiStrategy
+import ru.ifmo.genome.gamestrategies.hanabi.strategies.GeneticHanabiStrategy
 
-class HanabiEnvironment : Environment<HanabiStrategy> {
+class HanabiEnvironment : Environment<GeneticHanabiStrategy> {
     private val client = HttpClient(CIO) {
         install(WebSockets) {
             // Configure WebSockets
         }
     }
 
-    override fun fit(individual: HanabiStrategy): Int {
+    override fun fit(individual: GeneticHanabiStrategy): Int {
         var result = 0
         runBlocking {
             client.webSocket(method = HttpMethod.Get, host = "127.0.0.1", port = 8765, path = "/") {

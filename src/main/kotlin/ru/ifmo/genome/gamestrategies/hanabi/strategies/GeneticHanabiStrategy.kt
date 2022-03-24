@@ -2,12 +2,10 @@ package ru.ifmo.genome.gamestrategies.hanabi.strategies
 
 import ru.ifmo.genome.gamestrategies.core.Individual
 
-class HanabiStrategy : Individual<HanabiStrategy> {
-    private var strategy = listOf(HanabiAction.SafePlay, HanabiAction.RandomHint, HanabiAction.RandomDiscard)
+class GeneticHanabiStrategy : RuleBasedHanabiStrategy, Individual<GeneticHanabiStrategy> {
+    private var strategy = listOf(HanabiAction.SafePlay, HanabiAction.PlayableHint, HanabiAction.NonHintedDiscard, HanabiAction.RandomDiscard)
 
-
-
-    override fun mutate(): HanabiStrategy {
+    override fun mutate(): GeneticHanabiStrategy {
         TODO("Not yet implemented")
     }
 
@@ -19,7 +17,7 @@ class HanabiStrategy : Individual<HanabiStrategy> {
         TODO("Not yet implemented")
     }
 
-    fun getStrategy() : List<HanabiAction> {
+    override fun getStrategy(): List<HanabiAction> {
         return strategy
     }
 
