@@ -21,10 +21,17 @@ sealed class HanabiAction {
     object GreedyHint : HanabiAction()
 
     /**
-     * Tells a hint on playable cards. Hint is chosen randomly across all.
+     * Tells a hint on any playable, not fully known card.
+     * If card is known partially, completes it.
      */
     @Serializable
     object PlayableHint : HanabiAction()
+
+    /**
+     * If a playable card was hinted color or rank, performs second hint with missing information.
+     */
+    @Serializable
+    object CompletePlayableHint : HanabiAction()
 
     /**
      * Same as [PlayableHint], but hint affects maximum amount of cards.
@@ -89,7 +96,24 @@ sealed class HanabiAction {
      * Probability: 1 - P(all good cards are in DECK)
      */
     @Serializable
-    data class UnsafeProbabilityPlay(val probability: Float) : HanabiAction()
+    data class ProbabilityPlay(val probability: Float) : HanabiAction()
 
+
+    // UTILITY SECTION - USED ONLY IN VALIDATION AGENTS
+
+
+    /**
+     * Legal random action, including play.
+     * Used only in "Legal Random" agent in validation.
+     */
+    @Serializable
+    object LegalRandom : HanabiAction()
+
+    /**
+     * Same as [PlayableHint], but can repeat hints.
+     * Used in "Internal" agent.
+     */
+    @Serializable
+    object WeakPlayableHint : HanabiAction()
 
 }

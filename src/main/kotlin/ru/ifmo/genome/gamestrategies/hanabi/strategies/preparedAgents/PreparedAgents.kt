@@ -1,14 +1,38 @@
 package ru.ifmo.genome.gamestrategies.hanabi.strategies.preparedAgents
 
+import ru.ifmo.genome.gamestrategies.hanabi.strategies.HanabiAction
 import ru.ifmo.genome.gamestrategies.hanabi.strategies.RuleBasedHanabiStrategy
 
-val IGGI = RuleBasedHanabiStrategy { emptyList() }
+val IGGI = RuleBasedHanabiStrategy {
+    listOf(
+        HanabiAction.SafePlay,
+        HanabiAction.PlayableHint,
+        HanabiAction.UselessDiscard,
+        TODO("discard oldest first")
+    )
+}
 
-val Internal = RuleBasedHanabiStrategy { emptyList() }
+val Internal = RuleBasedHanabiStrategy {
+    listOf(
+        HanabiAction.SafePlay,
+        HanabiAction.UselessDiscard,
+        HanabiAction.WeakPlayableHint,
+        HanabiAction.RandomHint,
+        HanabiAction.RandomDiscard
+    )
+}
 
-val Outer = RuleBasedHanabiStrategy { emptyList() }
+val Outer = RuleBasedHanabiStrategy {
+    listOf(
+        HanabiAction.SafePlay,
+        HanabiAction.UselessDiscard,
+        HanabiAction.PlayableHint,
+        HanabiAction.RandomHint,
+        HanabiAction.RandomDiscard
+    )
+}
 
-val LegalRandom = RuleBasedHanabiStrategy { emptyList() }
+val LegalRandom = RuleBasedHanabiStrategy { listOf(HanabiAction.LegalRandom) }
 
 val VanDenBergh = RuleBasedHanabiStrategy { emptyList() }
 

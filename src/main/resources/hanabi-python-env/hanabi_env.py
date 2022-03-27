@@ -7,13 +7,9 @@ import asyncio
 import websockets
 import random
 from hanabi_learning_environment import rl_env
-from hanabi_actions import action, terminal_safe_legal_random
+from hanabi_actions import action, parse_action, terminal_safe_legal_random
 
 from hanabi_learning_environment.rl_env import Agent
-
-
-def parse_action(name):
-    return name.split('.')[-1]
 
 
 class HanabiAgent(Agent):
@@ -32,11 +28,10 @@ class HanabiAgent(Agent):
             return None
 
         for rule in self.strategy:
-            action_type = parse_action(rule['type'])
-            result = action(observation, parse_action(rule['type']))
+            result = action(observation, rule)
             if result is not None:
                 print('Agent: {}, Action type: {}, Final action: {}'.format(observation['current_player'],
-                                                                            action_type, result))
+                                                                            parse_action(rule['type']), result))
                 return result
         # Legal random action if all rules were not applicable
         result = terminal_safe_legal_random(observation)
