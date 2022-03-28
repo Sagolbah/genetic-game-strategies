@@ -96,7 +96,7 @@ sealed class HanabiAction {
      * Probability: 1 - P(all good cards are in DECK)
      */
     @Serializable
-    data class ProbabilityPlay(val probability: Float) : HanabiAction()
+    data class ProbabilityPlay(val probability: Double) : HanabiAction()
 
 
     // UTILITY SECTION - USED ONLY IN VALIDATION AGENTS
