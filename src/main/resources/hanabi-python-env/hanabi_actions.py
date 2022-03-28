@@ -47,7 +47,7 @@ def probability_play(observation, probability):
                 best_idx = card_index
                 best_prob = prob
         elif hint['color'] is None and hint['rank'] is not None:
-            prob = get_probability_for_color(observation, hint['rank'])
+            prob = get_probability_for_rank(observation, hint['rank'])
             if prob > best_prob:
                 best_idx = card_index
                 best_prob = prob
@@ -205,7 +205,7 @@ def get_probability_for_rank(observation, rank):
     for card in observation['discard_pile']:  # discard
         if card['rank'] == rank:
             possible_cards -= 1
-            if playable_card(observation['fireworks'], card):
+            if playable_card(card, observation['fireworks']):
                 playable_cards -= 1
     for hand in observation['observed_hands']:  # across players, including myself
         for card in hand:
