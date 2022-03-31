@@ -40,6 +40,12 @@ sealed class HanabiAction {
     object GreedyPlayableHint : HanabiAction()
 
     /**
+     * Tells a random hint about useless card.
+     */
+    @Serializable
+    object UselessCardHint : HanabiAction()
+
+    /**
      * TEST - CAN BE REMOVED LATER
      * Gives rank hint.
      * The reason that only rank hints are used is that "Rank 1-hint" guarantees good early-game.
@@ -115,5 +121,24 @@ sealed class HanabiAction {
      */
     @Serializable
     object WeakPlayableHint : HanabiAction()
+
+    /**
+     * Discards a card, which was held in hand for longest period
+     * Used in "IGGI" and "Flawed" agents.
+     */
+    @Serializable
+    object OldestDiscard : HanabiAction()
+
+    /**
+     * Plays random card if deck is empty
+     */
+    @Serializable
+    object PiersRandomPlay : HanabiAction()
+
+    /**
+     * Same as [UselessCardHint], but works only if < 4 information tokens available.
+     */
+    @Serializable
+    object PiersUselessCardHint : HanabiAction()
 
 }

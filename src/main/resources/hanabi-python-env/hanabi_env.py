@@ -13,22 +13,29 @@ from hanabi_learning_environment.rl_env import Agent
 
 
 class HanabiAgent(Agent):
-    """Agent that applies a simple heuristic."""
 
     def __init__(self, config, strategy, *args, **kwargs):
         """Initialize the agent."""
         self.config = config
         self.strategy = json.loads(strategy)
-        # Extract max info tokens or set default to 8.
         self.max_information_tokens = config.get('information_tokens', 8)
+        # Utility data for testing agents. Evolved agents must not use this data.
+        self.time = 0
+        self.card_time = [0] * 5
 
     def act(self, observation):
-        """Act based on an observation."""
         if observation['current_player_offset'] != 0:
             return None
+        result = self.do_act(observation)
+        if result['action_type'] == 'PLAY' or result['action_type'] == 'DISCARD':
+            self.time += 1
+            self.card_time[result['card_index']] = self.time
+        return result
 
+    def do_act(self, observation):
+        """Act based on an observation."""
         for rule in self.strategy:
-            result = action(observation, rule)
+            result = action(observation, rule, self.card_time)
             if result is not None:
                 print('Agent: {}, Action type: {}, Final action: {}'.format(observation['current_player'],
                                                                             parse_action(rule['type']), result))

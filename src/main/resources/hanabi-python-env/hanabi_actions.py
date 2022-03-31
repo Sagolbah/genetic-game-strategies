@@ -7,8 +7,10 @@ def parse_action(name):
     return name.split('.')[-1]
 
 
-def action(observation, rule):
+def action(observation, rule, state):
     name = parse_action(rule['type'])
+    if name in state_action_map:
+        return state_action_map[name](observation, state)
     if name in probability_action_map:
         return probability_action_map[name](observation, float(rule['probability']))
     return action_map[name](observation)
@@ -56,7 +58,13 @@ def probability_play(observation, probability):
     return {'action_type': 'PLAY', 'card_index': best_idx}
 
 
-# NOTE: affects next player
+def piers_random_play(observation):
+    if observation['deck_size'] != 0 or observation['life_tokens'] == 1:
+        return None
+    moves = list(filter(lambda x: x['action_type'].startswith('PLAY'), observation['legal_moves']))
+    return random.choice(moves)
+
+
 def playable_hint(observation):
     if observation['information_tokens'] == 0:
         return None
@@ -89,11 +97,11 @@ def weak_playable_hint(observation):
     if observation['information_tokens'] == 0:
         return None
     playable_cards = get_all_playable_cards(observation)
-    hints = set()
-    for _, card in playable_cards:
-        hints.add({'action_type': 'REVEAL_RANK', 'target_offset': 1, 'rank': card['rank']})
-        hints.add({'action_type': 'REVEAL_COLOR', 'target_offset': 1, 'color': card['color']})
-    return random.choice(list(hints))
+    hints = []
+    for _, card in playable_cards:  # TODO: do we need set here?
+        hints.append({'action_type': 'REVEAL_RANK', 'target_offset': 1, 'rank': card['rank']})
+        hints.append({'action_type': 'REVEAL_COLOR', 'target_offset': 1, 'color': card['color']})
+    return random.choice(hints) if hints else None
 
 
 def random_hint(observation):
@@ -101,6 +109,27 @@ def random_hint(observation):
         moves = list(filter(lambda x: x['action_type'].startswith('REVEAL'), observation['legal_moves']))
         return random.choice(moves)
     return None
+
+
+def useless_card_hint(observation):
+    if observation['information_tokens'] == 0:
+        return None
+    given_hints = observation['card_knowledge'][1]
+    hints = []
+    for idx, card in enumerate(observation['observed_hands'][1]):
+        if not is_useless(observation['fireworks'], observation['discard_pile'], card):
+            continue
+        if given_hints[idx]['rank'] is None:
+            hints.append({'action_type': 'REVEAL_RANK', 'target_offset': 1, 'rank': card['rank']})
+        if given_hints[idx]['color'] is None:
+            hints.append({'action_type': 'REVEAL_COLOR', 'target_offset': 1, 'color': card['color']})
+    return random.choice(hints) if hints else None
+
+
+def piers_useless_card_hint(observation):
+    if observation['information_tokens'] >= 4:
+        return None
+    return useless_card_hint(observation)
 
 
 def non_hinted_discard(observation):
@@ -127,7 +156,15 @@ def useless_discard(observation):
     return None
 
 
-# TODO: Check discard for cards with 2 hints
+def oldest_discard(observation, state):
+    if observation['information_tokens'] == 8:
+        return None
+    oldest_idx = min(range(len(state)), key=state.__getitem__)
+    if sum(1 if state[oldest_idx] == x else 0 for x in state) > 1:
+        return None
+    return {'action_type': 'DISCARD', 'card_index': oldest_idx}
+
+
 def is_useless(fireworks, discard_pile, card):
     if card['color'] is None and card['rank'] is None:
         return False
@@ -137,6 +174,13 @@ def is_useless(fireworks, discard_pile, card):
     # Check rank
     if card['rank'] is not None and card['rank'] > min(fireworks.values()):
         return True
+    # Rules for fully known cards.
+    if card['rank'] is not None and card['color'] is not None:
+        # Check if lower than pile
+        if fireworks[card['color']] > card['rank']:
+            return True
+        # TODO Check if rank is higher than possible using discard
+
     return False
 
 
@@ -225,11 +269,18 @@ action_map = {
     "RandomDiscard": random_discard,
     "UselessDiscard": useless_discard,
     "LegalRandom": legal_random,
-    "WeakPlayableHint": weak_playable_hint
+    "WeakPlayableHint": weak_playable_hint,
+    "UselessCardHint": useless_card_hint,
+    "PiersRandomPlay": piers_random_play,
+    "PiersUselessCardHint": piers_useless_card_hint
 }
 
 probability_action_map = {
     "ProbabilityPlay": probability_play
+}
+
+state_action_map = {
+    "OldestDiscard": oldest_discard
 }
 
 cards_per_rank = {

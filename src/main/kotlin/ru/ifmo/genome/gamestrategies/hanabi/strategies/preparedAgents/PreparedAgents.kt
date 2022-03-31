@@ -8,7 +8,7 @@ val IGGI = RuleBasedHanabiStrategy {
         HanabiAction.SafePlay,
         HanabiAction.PlayableHint,
         HanabiAction.UselessDiscard,
-        TODO("discard oldest first")
+        HanabiAction.OldestDiscard
     )
 }
 
@@ -36,6 +36,27 @@ val LegalRandom = RuleBasedHanabiStrategy { listOf(HanabiAction.LegalRandom) }
 
 val VanDenBergh = RuleBasedHanabiStrategy { emptyList() }
 
-val Flawed = RuleBasedHanabiStrategy { emptyList() }
+val Flawed = RuleBasedHanabiStrategy {
+    listOf(
+        HanabiAction.SafePlay,
+        HanabiAction.ProbabilityPlay(0.25),
+        HanabiAction.RandomHint,
+        HanabiAction.UselessDiscard,
+        HanabiAction.OldestDiscard,
+        HanabiAction.RandomDiscard
+    )
+}
 
-val Piers = RuleBasedHanabiStrategy { emptyList() }
+val Piers = RuleBasedHanabiStrategy {
+    listOf(
+        HanabiAction.PiersRandomPlay,
+        HanabiAction.SafePlay,
+        HanabiAction.ProbabilityPlay(0.6),
+        HanabiAction.PlayableHint,
+        HanabiAction.PiersUselessCardHint,
+        HanabiAction.UselessDiscard,
+        HanabiAction.OldestDiscard,
+        HanabiAction.RandomHint,
+        HanabiAction.RandomDiscard
+    )
+}
