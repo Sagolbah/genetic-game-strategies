@@ -92,14 +92,9 @@ sealed class HanabiAction {
      * Loops through all cards.
      * Plays a card with probability of correct guess higher or equal than provided parameter.
      * On multiple cards: will play card with the highest probability.
-     * The probability is calculated with following data:
-     * > visible cards of opponents
-     * > cards in starting deck
-     * > cards in discard pile & remaining deck
+     * The probability is P / A, where A is number of possible cards that can occupy a slot in hand,
+     * and P is number of playable cards across them.
      *
-     * Available cards: DECK - DISCARD - OTHER PLAYERS
-     * Good card: which will play successfully
-     * Probability: 1 - P(all good cards are in DECK)
      */
     @Serializable
     data class ProbabilityPlay(val probability: Double) : HanabiAction()
