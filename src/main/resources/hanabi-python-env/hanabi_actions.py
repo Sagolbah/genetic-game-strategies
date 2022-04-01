@@ -58,11 +58,10 @@ def probability_play(observation, probability):
     return {'action_type': 'PLAY', 'card_index': best_idx}
 
 
-def piers_random_play(observation):
+def piers_probability_play(observation):
     if observation['deck_size'] != 0 or observation['life_tokens'] == 1:
         return None
-    moves = list(filter(lambda x: x['action_type'].startswith('PLAY'), observation['legal_moves']))
-    return random.choice(moves)
+    return probability_play(observation, 0)
 
 
 def playable_hint(observation):
@@ -132,6 +131,30 @@ def piers_useless_card_hint(observation):
     return useless_card_hint(observation)
 
 
+def greedy_hint(observation):
+    if observation['information_tokens'] == 0:
+        return None
+    given_hints = observation['card_knowledge'][1]
+    true_hand = observation['observed_hands'][1]
+    best_hint = None
+    best_info = 0
+    moves = list(filter(lambda x: x['action_type'].startswith('REVEAL'), observation['legal_moves']))
+    for move in moves:
+        info_cnt = 0
+        if move['action_type'] == 'REVEAL_COLOR':
+            for i in range(len(given_hints)):
+                if given_hints[i]['color'] is None and true_hand[i]['color'] == move['color']:
+                    info_cnt += 1
+        else:
+            for i in range(len(given_hints)):
+                if given_hints[i]['rank'] is None and true_hand[i]['rank'] == move['rank']:
+                    info_cnt += 1
+        if info_cnt > best_info:
+            best_info = info_cnt
+            best_hint = move
+    return best_hint
+
+
 def non_hinted_discard(observation):
     if observation['information_tokens'] == 8:
         return None
@@ -172,7 +195,7 @@ def is_useless(fireworks, discard_pile, card):
     if card['color'] is not None and fireworks[card['color']] == 5:
         return True
     # Check rank
-    if card['rank'] is not None and card['rank'] > min(fireworks.values()):
+    if card['rank'] is not None and card['rank'] < min(fireworks.values()):
         return True
     # Rules for fully known cards.
     if card['rank'] is not None and card['color'] is not None:
@@ -271,8 +294,9 @@ action_map = {
     "LegalRandom": legal_random,
     "WeakPlayableHint": weak_playable_hint,
     "UselessCardHint": useless_card_hint,
-    "PiersRandomPlay": piers_random_play,
-    "PiersUselessCardHint": piers_useless_card_hint
+    "PiersProbabilityPlay": piers_probability_play,
+    "PiersUselessCardHint": piers_useless_card_hint,
+    "GreedyHint": greedy_hint
 }
 
 probability_action_map = {

@@ -34,7 +34,17 @@ val Outer = RuleBasedHanabiStrategy {
 
 val LegalRandom = RuleBasedHanabiStrategy { listOf(HanabiAction.LegalRandom) }
 
-val VanDenBergh = RuleBasedHanabiStrategy { emptyList() }
+val VanDenBergh = RuleBasedHanabiStrategy {
+    listOf(
+        HanabiAction.ProbabilityPlay(0.6),
+        HanabiAction.SafePlay,
+        HanabiAction.UselessDiscard,
+        HanabiAction.PlayableHint,
+        HanabiAction.UselessCardHint,
+        HanabiAction.GreedyHint,
+        HanabiAction.VDBProbabilityPlay
+    )
+}
 
 val Flawed = RuleBasedHanabiStrategy {
     listOf(
@@ -49,7 +59,7 @@ val Flawed = RuleBasedHanabiStrategy {
 
 val Piers = RuleBasedHanabiStrategy {
     listOf(
-        HanabiAction.PiersRandomPlay,
+        HanabiAction.PiersProbabilityPlay,
         HanabiAction.SafePlay,
         HanabiAction.ProbabilityPlay(0.6),
         HanabiAction.PlayableHint,

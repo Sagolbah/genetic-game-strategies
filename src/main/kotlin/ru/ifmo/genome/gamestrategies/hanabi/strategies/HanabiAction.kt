@@ -15,12 +15,6 @@ sealed class HanabiAction {
     object RandomHint : HanabiAction()
 
     /**
-     * Tells hint that affects most cards in hand
-     */
-    @Serializable
-    object GreedyHint : HanabiAction()
-
-    /**
      * Tells a hint on any playable, not fully known card.
      * If card is known partially, completes it.
      */
@@ -125,15 +119,29 @@ sealed class HanabiAction {
     object OldestDiscard : HanabiAction()
 
     /**
-     * Plays random card if deck is empty
+     * Plays card with the highest success probability if deck is empty
      */
     @Serializable
-    object PiersRandomPlay : HanabiAction()
+    object PiersProbabilityPlay : HanabiAction()
 
     /**
      * Same as [UselessCardHint], but works only if < 4 information tokens available.
      */
     @Serializable
     object PiersUselessCardHint : HanabiAction()
+
+    /**
+     * Discards card with the highest probability of being useless
+     * Probability works the same as [ProbabilityPlay], but instead of playable cards we count useless.
+     */
+    @Serializable
+    object VDBProbabilityPlay : HanabiAction()
+
+    /**
+     * Tells hint that affects most cards in hand
+     * Used in Van den Bergh agent.
+     */
+    @Serializable
+    object GreedyHint : HanabiAction()
 
 }
