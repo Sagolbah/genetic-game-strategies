@@ -42,7 +42,7 @@ val VanDenBergh = RuleBasedHanabiStrategy {
         HanabiAction.PlayableHint,
         HanabiAction.UselessCardHint,
         HanabiAction.GreedyHint,
-        HanabiAction.VDBProbabilityPlay
+        HanabiAction.VDBProbabilityDiscard
     )
 }
 

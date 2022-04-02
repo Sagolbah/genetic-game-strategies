@@ -64,6 +64,7 @@ def piers_probability_play(observation):
     return probability_play(observation, 0)
 
 
+# noinspection PyTypeChecker
 def playable_hint(observation):
     if observation['information_tokens'] == 0:
         return None
@@ -188,6 +189,29 @@ def oldest_discard(observation, state):
     return {'action_type': 'DISCARD', 'card_index': oldest_idx}
 
 
+def vdb_probability_discard(observation):
+    if observation['information_tokens'] == 8:
+        return None
+    best_prob = -1
+    best_idx = -1
+    for card_index, hint in enumerate(observation['card_knowledge'][0]):
+        if is_useless(observation['fireworks'], observation['discard_pile'], hint):
+            return {'action_type': 'DISCARD', 'card_index': card_index}
+        if hint['color'] is not None and hint['rank'] is None:
+            prob = vdb_useless_probability_for_color(observation, hint['color'])
+            if prob > best_prob:
+                best_idx = card_index
+                best_prob = prob
+        elif hint['color'] is None and hint['rank'] is not None:
+            prob = vdb_useless_probability_for_rank(observation, hint['rank'])
+            if prob > best_prob:
+                best_idx = card_index
+                best_prob = prob
+    if best_idx == -1:
+        return None
+    return {'action_type': 'DISCARD', 'card_index': best_idx}
+
+
 def is_useless(fireworks, discard_pile, card):
     if card['color'] is None and card['rank'] is None:
         return False
@@ -247,7 +271,7 @@ def legal_random(observation):
     return random.choice(observation['legal_moves'])
 
 
-# If we had a "good" card with full information, it would be played in safe_play corner case.
+# Invariant: There is no "good" cards with full information in our hand, it is played in safe_play corner case.
 def get_probability_for_color(observation, color):
     required_rank = observation['fireworks'][color]
     possible_cards = 10  # possible cards that could fit into given slot (i.e. which are green)
@@ -257,13 +281,17 @@ def get_probability_for_color(observation, color):
             possible_cards -= 1
             if card['rank'] == required_rank:
                 playable_cards -= 1
-    for hand in observation['observed_hands']:  # across players, including myself
-        for card in hand:
+    for i in range(1, len(observation['observed_hands'])):  # across players
+        for card in observation['observed_hands'][i]:
             if card['color'] == color:
                 possible_cards -= 1
                 if card['rank'] == required_rank:
                     playable_cards -= 1
-    return 0 if possible_cards == 0 else playable_cards / possible_cards
+    for card in observation['card_knowledge'][0]:  # my hand
+        if card['color'] == color and card['rank'] is not None:
+            possible_cards -= 1
+            assert not playable_card(card, observation['fireworks'])
+    return playable_cards / possible_cards
 
 
 def get_probability_for_rank(observation, rank):
@@ -274,13 +302,57 @@ def get_probability_for_rank(observation, rank):
             possible_cards -= 1
             if playable_card(card, observation['fireworks']):
                 playable_cards -= 1
-    for hand in observation['observed_hands']:  # across players, including myself
-        for card in hand:
+    for i in range(1, len(observation['observed_hands'])):  # across players
+        for card in observation['observed_hands'][i]:
             if card['rank'] == rank:
                 possible_cards -= 1
                 if playable_card(card, observation['fireworks']):
                     playable_cards -= 1
-    return 0 if possible_cards == 0 else playable_cards / possible_cards
+    for card in observation['card_knowledge'][0]:  # my hand
+        if card['rank'] == rank and card['color'] is not None:
+            possible_cards -= 1
+            assert not playable_card(card, observation['fireworks'])
+    return playable_cards / possible_cards
+
+
+def vdb_useless_probability_for_color(observation, color):
+    possible_cards = cards_per_rank.copy()
+    for card in observation['discard_pile']:
+        if card['color'] == color:
+            possible_cards[card['rank']] -= 1
+    for i in range(1, len(observation['observed_hands'])):
+        for card in observation['observed_hands'][i]:
+            if card['color'] == color:
+                possible_cards[card['rank']] -= 1
+    for card in observation['card_knowledge'][0]:
+        if card['color'] == color and card['rank'] is not None:
+            possible_cards[card['rank']] -= 1
+    useless_cards = 0
+    possible_sum = sum(possible_cards.values())
+    for k, v in possible_cards.items():
+        if is_useless(observation['fireworks'], observation['discard_pile'], {'color': color, 'rank': k}):
+            useless_cards += v
+    return 0 if possible_sum == 0 else useless_cards / possible_sum
+
+
+def vdb_useless_probability_for_rank(observation, rank):
+    possible_cards = dict(zip(['B', 'G', 'R', 'W', 'Y'], [cards_per_rank[rank]] * 5))
+    for card in observation['discard_pile']:
+        if card['rank'] == rank:
+            possible_cards[card['color']] -= 1
+    for i in range(1, len(observation['observed_hands'])):
+        for card in observation['observed_hands'][i]:
+            if card['rank'] == rank:
+                possible_cards[card['color']] -= 1
+    for card in observation['card_knowledge'][0]:
+        if card['rank'] == rank and card['color'] is not None:
+            possible_cards[card['color']] -= 1
+    useless_cards = 0
+    possible_sum = sum(possible_cards.values())
+    for k, v in possible_cards.items():
+        if is_useless(observation['fireworks'], observation['discard_pile'], {'color': k, 'rank': rank}):
+            useless_cards += v
+    return 0 if possible_sum == 0 else useless_cards / possible_sum
 
 
 action_map = {
@@ -296,7 +368,8 @@ action_map = {
     "UselessCardHint": useless_card_hint,
     "PiersProbabilityPlay": piers_probability_play,
     "PiersUselessCardHint": piers_useless_card_hint,
-    "GreedyHint": greedy_hint
+    "GreedyHint": greedy_hint,
+    "VDBProbabilityDiscard": vdb_probability_discard
 }
 
 probability_action_map = {

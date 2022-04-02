@@ -135,7 +135,7 @@ sealed class HanabiAction {
      * Probability works the same as [ProbabilityPlay], but instead of playable cards we count useless.
      */
     @Serializable
-    object VDBProbabilityPlay : HanabiAction()
+    object VDBProbabilityDiscard : HanabiAction()
 
     /**
      * Tells hint that affects most cards in hand

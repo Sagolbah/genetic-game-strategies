@@ -1,11 +1,8 @@
 # Modified runner from Hanabi Learning Environment example
 
-import sys
-import getopt
 import json
 import asyncio
 import websockets
-import random
 from hanabi_learning_environment import rl_env
 from hanabi_actions import action, parse_action, terminal_safe_legal_random
 
@@ -14,7 +11,7 @@ from hanabi_learning_environment.rl_env import Agent
 
 class HanabiAgent(Agent):
 
-    def __init__(self, config, strategy, *args, **kwargs):
+    def __init__(self, config, strategy):
         """Initialize the agent."""
         self.config = config
         self.strategy = json.loads(strategy)
@@ -89,7 +86,7 @@ class Runner(object):
 async def fit(websocket):
     message = await websocket.recv()
     print(message)
-    flags = {'players': 2, 'num_episodes': 1}
+    flags = {'players': 3, 'num_episodes': 1}
     runner = Runner(flags, message)
     score = runner.run()
     await websocket.send(str(score[0]))
