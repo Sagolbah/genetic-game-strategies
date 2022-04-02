@@ -3,6 +3,7 @@
 import json
 import asyncio
 import websockets
+from statistics import mean
 from hanabi_learning_environment import rl_env
 from hanabi_actions import action, parse_action, terminal_safe_legal_random
 
@@ -89,6 +90,7 @@ async def fit(websocket):
     score = runner.run()
     await websocket.send(str(score[0]))
     print(f">>> {score}")
+    print("Average: " + str(mean(score)))
 
 
 async def main():

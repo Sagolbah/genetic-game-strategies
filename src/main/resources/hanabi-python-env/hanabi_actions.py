@@ -135,13 +135,14 @@ def piers_useless_card_hint(observation):
 def greedy_hint(observation):
     if observation['information_tokens'] == 0:
         return None
-    given_hints = observation['card_knowledge'][1]
-    true_hand = observation['observed_hands'][1]
+
     best_hint = None
     best_info = 0
     moves = list(filter(lambda x: x['action_type'].startswith('REVEAL'), observation['legal_moves']))
     for move in moves:
         info_cnt = 0
+        given_hints = observation['card_knowledge'][move['player_offset']]
+        true_hand = observation['observed_hands'][move['player_offset']]
         if move['action_type'] == 'REVEAL_COLOR':
             for i in range(len(given_hints)):
                 if given_hints[i]['color'] is None and true_hand[i]['color'] == move['color']:
@@ -183,7 +184,7 @@ def useless_discard(observation):
 def oldest_discard(observation, state):
     if observation['information_tokens'] == 8:
         return None
-    oldest_idx = min(range(len(state)), key=state.__getitem__)
+    oldest_idx = min(range(len(observation['card_knowledge'][0])), key=state.__getitem__)
     if sum(1 if state[oldest_idx] == x else 0 for x in state) > 1:
         return None
     return {'action_type': 'DISCARD', 'card_index': oldest_idx}
