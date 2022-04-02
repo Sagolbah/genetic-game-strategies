@@ -35,13 +35,13 @@ class HanabiAgent(Agent):
         for rule in self.strategy:
             result = action(observation, rule, self.card_time)
             if result is not None:
-                print('Agent: {}, Action type: {}, Final action: {}'.format(observation['current_player'],
-                                                                            parse_action(rule['type']), result))
+                #print('Agent: {}, Action type: {}, Final action: {}'.format(observation['current_player'],
+                                                                            #parse_action(rule['type']), result))
                 return result
         # Legal random action if all rules were not applicable
         result = terminal_safe_legal_random(observation)
-        print('Agent: {}, Action type: Terminal legal random, Final action: {}'.format(observation['current_player'],
-                                                                                       result))
+       # print('Agent: {}, Action type: Terminal legal random, Final action: {}'.format(observation['current_player'],
+                                                                                       #result))
         return result
 
 
@@ -79,7 +79,7 @@ class Runner(object):
                 episode_reward += reward
             rewards.append(episode_reward)
             print('Running episode: %d' % episode)
-            print('Max Reward: %.3f' % max(rewards))
+            print('Last Reward: %d' % episode_reward)
         return rewards
 
 
