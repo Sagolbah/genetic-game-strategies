@@ -14,7 +14,7 @@ class HanabiAgent(Agent):
     def __init__(self, config, strategy):
         """Initialize the agent."""
         self.config = config
-        self.strategy = json.loads(strategy)
+        self.strategy = strategy
         self.max_information_tokens = config.get('information_tokens', 8)
         # Utility data for testing agents. Evolved agents must not use this data.
         self.time = 0
@@ -47,21 +47,20 @@ class HanabiAgent(Agent):
 class Runner(object):
     """Runner class."""
 
-    def __init__(self, flags, strategy):
+    def __init__(self, config):
         """Initialize runner."""
-        self.flags = flags
-        self.agent_config = {'players': flags['players']}
-        self.environment = rl_env.make('Hanabi-Full', num_players=flags['players'])
-        self.strategy = strategy
+        self.config = config
+        self.agent_config = {'players': len(config['players'])}
+        self.environment = rl_env.make('Hanabi-Full', num_players=len(config['players']))
         self.agent_class = HanabiAgent
 
     def run(self):
         """Run episodes."""
         rewards = []
-        for episode in range(self.flags['num_episodes']):
+        for episode in range(self.config['rounds']):
             observations = self.environment.reset()
-            agents = [self.agent_class(self.agent_config, self.strategy)
-                      for _ in range(self.flags['players'])]
+            agents = [self.agent_class(self.agent_config, strategy)
+                      for strategy in self.config['players']]
             done = False
             episode_reward = 0
             while not done:
@@ -86,8 +85,7 @@ class Runner(object):
 async def fit(websocket):
     message = await websocket.recv()
     print(message)
-    flags = {'players': 3, 'num_episodes': 1}
-    runner = Runner(flags, message)
+    runner = Runner(json.loads(message))
     score = runner.run()
     await websocket.send(str(score[0]))
     print(f">>> {score}")

@@ -223,10 +223,8 @@ def is_useless(fireworks, discard_pile, card):
         return True
     # Rules for fully known cards.
     if card['rank'] is not None and card['color'] is not None:
-        # Check if lower than pile
-        if fireworks[card['color']] > card['rank']:
+        if fireworks[card['color']] > card['rank'] or card['rank'] > find_most_possible_rank(card['color'], discard_pile):
             return True
-        # TODO Check if rank is higher than possible using discard
 
     return False
 
@@ -269,6 +267,17 @@ def terminal_safe_legal_random(observation):
 
 def legal_random(observation):
     return random.choice(observation['legal_moves'])
+
+
+def find_most_possible_rank(color, discard_pile):
+    discards = dict(zip(range(5), [0] * 5))
+    for card in discard_pile:
+        if card['color'] == color:
+            discards[card['rank']] += 1
+    for i in range(5):
+        if discards[i] != cards_per_rank[i]:
+            return i
+    return -1
 
 
 # Invariant: There is no "good" cards with full information in our hand, it is played in safe_play corner case.

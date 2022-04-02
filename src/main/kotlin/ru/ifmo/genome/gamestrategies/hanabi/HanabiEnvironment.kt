@@ -10,6 +10,7 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.encodeToString as jsonEncode
 import ru.ifmo.genome.gamestrategies.core.Environment
 import ru.ifmo.genome.gamestrategies.hanabi.strategies.GeneticHanabiStrategy
+import ru.ifmo.genome.gamestrategies.hanabi.strategies.preparedAgents.*
 
 class HanabiEnvironment : Environment<GeneticHanabiStrategy> {
     private val client = HttpClient(CIO) {
@@ -22,7 +23,7 @@ class HanabiEnvironment : Environment<GeneticHanabiStrategy> {
         var result = 0
         runBlocking {
             client.webSocket(method = HttpMethod.Get, host = "127.0.0.1", port = 8765, path = "/") {
-                send(Json.jsonEncode(individual.getStrategy()))
+                send(Json.jsonEncode(RunConfiguration(5, listOf(Piers.getStrategy(), Outer.getStrategy(), VanDenBergh.getStrategy()))))
                 val interactorResult = incoming.receive() as? Frame.Text
                 result = Integer.parseInt(interactorResult?.readText())
             }

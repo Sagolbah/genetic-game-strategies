@@ -5,12 +5,9 @@ import kotlinx.serialization.encodeToString as jsonEncode
 
 fun main(args: Array<String>) {
     val env = HanabiEnvironment()
-    println(Json.jsonEncode(GeneticHanabiStrategy().getStrategy()))
-    val size = 100
-    val result = IntArray(size)
     val strategy = GeneticHanabiStrategy()
-    repeat(size) {i -> result[i] = env.fit(strategy)}
-    println(result.joinToString())
-    println(result.average())
+    println(env.fit(strategy))
 }
+// internal 9.576, outer 13.068
+// new internal 9.8, outer
 
