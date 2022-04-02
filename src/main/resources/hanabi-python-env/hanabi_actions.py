@@ -141,8 +141,8 @@ def greedy_hint(observation):
     moves = list(filter(lambda x: x['action_type'].startswith('REVEAL'), observation['legal_moves']))
     for move in moves:
         info_cnt = 0
-        given_hints = observation['card_knowledge'][move['player_offset']]
-        true_hand = observation['observed_hands'][move['player_offset']]
+        given_hints = observation['card_knowledge'][move['target_offset']]
+        true_hand = observation['observed_hands'][move['target_offset']]
         if move['action_type'] == 'REVEAL_COLOR':
             for i in range(len(given_hints)):
                 if given_hints[i]['color'] is None and true_hand[i]['color'] == move['color']:
@@ -224,7 +224,8 @@ def is_useless(fireworks, discard_pile, card):
         return True
     # Rules for fully known cards.
     if card['rank'] is not None and card['color'] is not None:
-        if fireworks[card['color']] > card['rank'] or card['rank'] > find_most_possible_rank(card['color'], discard_pile):
+        if fireworks[card['color']] > card['rank'] or card['rank'] > find_most_possible_rank(card['color'],
+                                                                                             fireworks, discard_pile):
             return True
 
     return False
@@ -270,7 +271,7 @@ def legal_random(observation):
     return random.choice(observation['legal_moves'])
 
 
-def find_most_possible_rank(color, discard_pile):
+def find_most_possible_rank(color, fireworks, discard_pile):
     discards = dict(zip(range(5), [0] * 5))
     for card in discard_pile:
         if card['color'] == color:
@@ -278,7 +279,7 @@ def find_most_possible_rank(color, discard_pile):
     for i in range(5):
         if discards[i] != cards_per_rank[i]:
             return i
-    return -1
+    return 4
 
 
 # Invariant: There is no "good" cards with full information in our hand, it is played in safe_play corner case.
