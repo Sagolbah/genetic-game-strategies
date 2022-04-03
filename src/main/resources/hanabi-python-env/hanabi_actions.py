@@ -68,17 +68,15 @@ def piers_probability_play(observation):
 def playable_hint(observation):
     if observation['information_tokens'] == 0:
         return None
-    given_hints = observation['card_knowledge'][1]
-    playable_cards = get_all_playable_cards(observation)
-    # try to finish hint
-    playable_hints = get_completing_hints(observation)
-    # use random hint about useful card
-    for idx, card in playable_cards:
-        if given_hints[idx]['rank'] is None and given_hints[idx]['color'] is None:
-            if bool(random.getrandbits(1)):
-                playable_hints.append({'action_type': 'REVEAL_RANK', 'target_offset': 1, 'rank': card['rank']})
-            else:
-                playable_hints.append({'action_type': 'REVEAL_COLOR', 'target_offset': 1, 'color': card['color']})
+    playable_hints = []
+    for i in range(1, len(observation['observed_hands'])):
+        given_hints = observation['card_knowledge'][i]
+        playable_cards = get_all_playable_cards(observation, i)
+        for idx, card in playable_cards:
+            if given_hints[idx]['rank'] is None:
+                playable_hints.append({'action_type': 'REVEAL_RANK', 'target_offset': i, 'rank': card['rank']})
+            elif given_hints[idx]['color'] is None:
+                playable_hints.append({'action_type': 'REVEAL_COLOR', 'target_offset': i, 'color': card['color']})
     if playable_hints:
         return random.choice(playable_hints)
     return None
@@ -87,7 +85,7 @@ def playable_hint(observation):
 def complete_playable_hint(observation):
     if observation['information_tokens'] == 0:
         return None
-    completing_hints = get_completing_hints(observation)
+    completing_hints = get_completing_hints(observation, 1)
     if completing_hints:
         return random.choice(completing_hints)
     return None
@@ -96,7 +94,7 @@ def complete_playable_hint(observation):
 def weak_playable_hint(observation):
     if observation['information_tokens'] == 0:
         return None
-    playable_cards = get_all_playable_cards(observation)
+    playable_cards = get_all_playable_cards(observation, 1)
     hints = []
     for _, card in playable_cards:  # TODO: do we need set here?
         hints.append({'action_type': 'REVEAL_RANK', 'target_offset': 1, 'rank': card['rank']})
@@ -114,15 +112,16 @@ def random_hint(observation):
 def useless_card_hint(observation):
     if observation['information_tokens'] == 0:
         return None
-    given_hints = observation['card_knowledge'][1]
     hints = []
-    for idx, card in enumerate(observation['observed_hands'][1]):
-        if not is_useless(observation['fireworks'], observation['discard_pile'], card):
-            continue
-        if given_hints[idx]['rank'] is None:
-            hints.append({'action_type': 'REVEAL_RANK', 'target_offset': 1, 'rank': card['rank']})
-        if given_hints[idx]['color'] is None:
-            hints.append({'action_type': 'REVEAL_COLOR', 'target_offset': 1, 'color': card['color']})
+    for i in range(1, len(observation['observed_hands'])):
+        given_hints = observation['card_knowledge'][i]
+        for idx, card in enumerate(observation['observed_hands'][i]):
+            if not is_useless(observation['fireworks'], observation['discard_pile'], card):
+                continue
+            if given_hints[idx]['rank'] is None:
+                hints.append({'action_type': 'REVEAL_RANK', 'target_offset': i, 'rank': card['rank']})
+            if given_hints[idx]['color'] is None:
+                hints.append({'action_type': 'REVEAL_COLOR', 'target_offset': i, 'color': card['color']})
     return random.choice(hints) if hints else None
 
 
@@ -236,9 +235,9 @@ def playable_card(card, fireworks):
     return card['rank'] is not None and card['color'] is not None and card['rank'] == fireworks[card['color']]
 
 
-def get_completing_hints(observation):
-    given_hints = observation['card_knowledge'][1]
-    playable_cards = get_all_playable_cards(observation)
+def get_completing_hints(observation, offset):
+    given_hints = observation['card_knowledge'][offset]
+    playable_cards = get_all_playable_cards(observation, offset)
     answer = []
     # try to finish hint
     for idx, card in playable_cards:
@@ -255,10 +254,10 @@ def get_completing_hints(observation):
     return answer
 
 
-# Returns all playable cards for next player
-def get_all_playable_cards(observation):
+# Returns all playable cards
+def get_all_playable_cards(observation, offset):
     fireworks = observation['fireworks']
-    return [(idx, card) for idx, card in enumerate(observation['observed_hands'][1]) if playable_card(card, fireworks)]
+    return [(idx, card) for idx, card in enumerate(observation['observed_hands'][offset]) if playable_card(card, fireworks)]
 
 
 # Legal random "discard/hint" action. Used only when all rules are not applicable for current observation.
@@ -277,8 +276,8 @@ def find_most_possible_rank(color, discard_pile):
         if card['color'] == color:
             discards[card['rank']] += 1
     for i in range(5):
-        if discards[i] != cards_per_rank[i]:
-            return i
+        if discards[i] == cards_per_rank[i]:
+            return i - 1
     return 4
 
 
