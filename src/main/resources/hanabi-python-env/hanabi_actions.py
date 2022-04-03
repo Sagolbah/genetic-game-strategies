@@ -225,7 +225,7 @@ def is_useless(fireworks, discard_pile, card):
     # Rules for fully known cards.
     if card['rank'] is not None and card['color'] is not None:
         if fireworks[card['color']] > card['rank'] or card['rank'] > find_most_possible_rank(card['color'],
-                                                                                             fireworks, discard_pile):
+                                                                                             discard_pile):
             return True
 
     return False
@@ -271,7 +271,7 @@ def legal_random(observation):
     return random.choice(observation['legal_moves'])
 
 
-def find_most_possible_rank(color, fireworks, discard_pile):
+def find_most_possible_rank(color, discard_pile):
     discards = dict(zip(range(5), [0] * 5))
     for card in discard_pile:
         if card['color'] == color:
