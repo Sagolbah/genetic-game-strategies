@@ -4,5 +4,5 @@ interface Environment<T : Individual<T>> {
     /**
      * Calculates fitness of single individual
      */
-    fun fit(individual : T) : Int
+    fun fit(individual : T) : Double
 }

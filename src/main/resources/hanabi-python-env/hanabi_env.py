@@ -2,12 +2,15 @@
 
 import json
 import asyncio
+import random
+
 import websockets
 from statistics import mean
-from hanabi_learning_environment import rl_env
+from hanabi_learning_environment import rl_env, pyhanabi
 from hanabi_actions import action, parse_action, terminal_safe_legal_random
 
 from hanabi_learning_environment.rl_env import Agent
+
 
 class HanabiAgent(Agent):
 
@@ -34,11 +37,11 @@ class HanabiAgent(Agent):
         for rule in self.strategy:
             result = action(observation, rule, self.card_time)
             if result is not None:
-                #print('Agent: {}, Action type: {}, Final action: {}'.format(observation['current_player'], parse_action(rule['type']), result))
+                # print('Agent: {}, Action type: {}, Final action: {}'.format(observation['current_player'], parse_action(rule['type']), result))
                 return result
         # Legal random action if all rules were not applicable
         result = terminal_safe_legal_random(observation)
-        #print('Agent: {}, Action type: Terminal legal random, Final action: {}'.format(observation['current_player'], result))
+        # print('Agent: {}, Action type: Terminal legal random, Final action: {}'.format(observation['current_player'], result))
         return result
 
 
@@ -49,14 +52,17 @@ class Runner(object):
         """Initialize runner."""
         self.config = config
         self.agent_config = {'players': len(config['players'])}
-        self.environment = rl_env.make('Hanabi-Full', num_players=len(config['players']))
+        random.seed(config['seed'])
+        self.seeds = [random.randint(0, 100000000) for _ in range(config['rounds'])]
         self.agent_class = HanabiAgent
 
     def run(self):
         """Run episodes."""
         rewards = []
         for episode in range(self.config['rounds']):
-            observations = self.environment.reset()
+            random.seed(self.seeds[episode])
+            environment = self.make_environment(self.seeds[episode], len(self.config['players']))
+            observations = environment.reset()
             agents = [self.agent_class(self.agent_config, strategy)
                       for strategy in self.config['players']]
             done = False
@@ -71,7 +77,7 @@ class Runner(object):
                     else:
                         assert action is None
                 # Make an environment step.
-                observations, reward, done, _ = self.environment.step(
+                observations, reward, done, _ = environment.step(
                     current_player_action)
                 episode_reward += reward
             rewards.append(episode_reward)
@@ -79,15 +85,27 @@ class Runner(object):
             print('Last Reward: %d' % episode_reward)
         return rewards
 
+    @staticmethod
+    def make_environment(seed, players):
+        return rl_env.HanabiEnv(config={
+            "colors": 5,
+            "ranks": 5,
+            "players": players,
+            "max_information_tokens": 8,
+            "max_life_tokens": 3,
+            "seed": seed,
+            "observation_type": pyhanabi.AgentObservationType.CARD_KNOWLEDGE.value})
+
 
 async def fit(websocket):
     message = await websocket.recv()
     print(message)
     runner = Runner(json.loads(message))
-    score = runner.run()
-    await websocket.send(str(score[0]))
-    print(f">>> {score}")
-    print("Average: " + str(mean(score)))
+    rewards = runner.run()
+    fitness = mean(rewards)
+    await websocket.send(str(fitness))
+    print(f">>> {rewards}")
+    print("Average: " + str(fitness))
 
 
 async def main():

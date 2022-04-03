@@ -1,7 +1,5 @@
-import kotlinx.serialization.json.Json
 import ru.ifmo.genome.gamestrategies.hanabi.HanabiEnvironment
 import ru.ifmo.genome.gamestrategies.hanabi.strategies.GeneticHanabiStrategy
-import kotlinx.serialization.encodeToString as jsonEncode
 
 fun main(args: Array<String>) {
     val env = HanabiEnvironment()

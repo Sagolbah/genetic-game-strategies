@@ -8,7 +8,7 @@ import kotlin.random.Random
 class GeneticTicTacToeStrategy(override val env: TicTacToeEnvironment) : TicTacToeStrategy(env), Individual<GeneticTicTacToeStrategy> {
     private val actions: Array<Action> = Array(9) { Action() }
     private val mutationRate = 0.02
-    private var fitness = 0
+    private var fitness = 0.0
 
     companion object {
         val fieldStatuses = FieldStatus.values()
@@ -31,11 +31,11 @@ class GeneticTicTacToeStrategy(override val env: TicTacToeEnvironment) : TicTacT
         return newStrategy
     }
 
-    override fun getFitness(): Int {
+    override fun getFitness(): Double {
         return fitness
     }
 
-    override fun setFitness(fitness: Int) {
+    override fun setFitness(fitness: Double) {
         this.fitness = fitness
     }
 

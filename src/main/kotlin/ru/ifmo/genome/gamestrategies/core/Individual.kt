@@ -17,11 +17,11 @@ interface Individual<T: Individual<T>> {
      *
      * @return fitness of individual, if defined
      */
-    fun getFitness(): Int
+    fun getFitness(): Double
 
     /**
      * Set fitness of individual
      * @param fitness
      */
-    fun setFitness(fitness: Int)
+    fun setFitness(fitness: Double)
 }

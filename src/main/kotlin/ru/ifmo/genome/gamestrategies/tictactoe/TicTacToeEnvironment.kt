@@ -11,7 +11,7 @@ class TicTacToeEnvironment : Environment<GeneticTicTacToeStrategy> {
     private val victoryReward = 3
     private val drawReward = 1
 
-    override fun fit(individual: GeneticTicTacToeStrategy): Int {
+    override fun fit(individual: GeneticTicTacToeStrategy): Double {
         opponents.forEach { x -> x.resetRandom() }  // The fitness function must be deterministic.
         var fitness = 0
         for (player2 in opponents) {
@@ -38,7 +38,7 @@ class TicTacToeEnvironment : Environment<GeneticTicTacToeStrategy> {
                 player2.resetRandom()
             }
         }
-        return fitness
+        return fitness.toDouble()
     }
 
     fun getField(): Array<Array<FieldStatus>> {

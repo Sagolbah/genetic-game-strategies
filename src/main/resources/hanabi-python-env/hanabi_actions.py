@@ -231,7 +231,6 @@ def is_useless(fireworks, discard_pile, card):
 
 
 def playable_card(card, fireworks):
-    """A card is playable if it can be placed on the fireworks pile."""
     return card['rank'] is not None and card['color'] is not None and card['rank'] == fireworks[card['color']]
 
 

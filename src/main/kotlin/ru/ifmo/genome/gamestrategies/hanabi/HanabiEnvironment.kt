@@ -19,13 +19,13 @@ class HanabiEnvironment : Environment<GeneticHanabiStrategy> {
         }
     }
 
-    override fun fit(individual: GeneticHanabiStrategy): Int {
-        var result = 0
+    override fun fit(individual: GeneticHanabiStrategy): Double {
+        var result = 0.0
         runBlocking {
             client.webSocket(method = HttpMethod.Get, host = "127.0.0.1", port = 8765, path = "/") {
-                send(Json.jsonEncode(RunConfiguration(5, listOf(Piers.getStrategy(), Outer.getStrategy(), VanDenBergh.getStrategy()))))
+                send(Json.jsonEncode(RunConfiguration(20, 1, listOf(individual.getStrategy(), VanDenBergh.getStrategy()))))
                 val interactorResult = incoming.receive() as? Frame.Text
-                result = Integer.parseInt(interactorResult?.readText())
+                result = interactorResult?.readText()!!.toDouble()
             }
         }
         return result
