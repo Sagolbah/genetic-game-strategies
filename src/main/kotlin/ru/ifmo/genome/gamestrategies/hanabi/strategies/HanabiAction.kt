@@ -40,13 +40,14 @@ sealed class HanabiAction {
     object UselessCardHint : HanabiAction()
 
     /**
-     * TEST - CAN BE REMOVED LATER
      * Gives rank hint.
-     * The reason that only rank hints are used is that "Rank 1-hint" guarantees good early-game.
-     * @param rank rank of hint
+     * Mostly interested in 0 and 4 ranks, since they are useful in early/late game.
+     * Ranks are provided in 0-indexation
+     *
+     * @param value rank to hint
      */
     @Serializable
-    data class RankHint(val rank: Int) : HanabiAction()
+    data class RankHint(val value: Int) : HanabiAction()
 
     // DISCARD ACTIONS
 
@@ -85,16 +86,17 @@ sealed class HanabiAction {
      *
      * Loops through all cards.
      * Plays a card with probability of correct guess higher or equal than provided parameter.
-     * On multiple cards: will play card with the highest probability.
+     * On multiple cards will play card with the highest probability.
      * The probability is P / A, where A is number of possible cards that can occupy a slot in hand,
      * and P is number of playable cards across them.
      *
+     * @param value probability threshold
      */
     @Serializable
-    data class ProbabilityPlay(val probability: Double) : HanabiAction()
+    data class ProbabilityPlay(val value: Double) : HanabiAction()
 
 
-    // UTILITY SECTION - USED ONLY IN VALIDATION AGENTS
+    // UTILITY SECTION - MOSTLY ALL USED ONLY IN VALIDATION AGENTS
 
 
     /**
@@ -119,7 +121,8 @@ sealed class HanabiAction {
     object OldestDiscard : HanabiAction()
 
     /**
-     * Plays card with the highest success probability if deck is empty
+     * Plays card with the highest success probability if deck is empty and more than 1 life remaining.
+     * CAN be used in evolved agents, since it's pretty easy to use.
      */
     @Serializable
     object PiersProbabilityPlay : HanabiAction()

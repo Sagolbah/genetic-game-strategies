@@ -11,8 +11,8 @@ def action(observation, rule, state):
     name = parse_action(rule['type'])
     if name in state_action_map:
         return state_action_map[name](observation, state)
-    if name in probability_action_map:
-        return probability_action_map[name](observation, float(rule['probability']))
+    if name in parametrized_action_map:
+        return parametrized_action_map[name](observation, float(rule['value']))
     return action_map[name](observation)
 
 
@@ -85,7 +85,9 @@ def playable_hint(observation):
 def complete_playable_hint(observation):
     if observation['information_tokens'] == 0:
         return None
-    completing_hints = get_completing_hints(observation, 1)
+    completing_hints = []
+    for i in range(1, len(observation['observed_hands'])):
+        completing_hints += get_completing_hints(observation, i)
     if completing_hints:
         return random.choice(completing_hints)
     return None
@@ -123,6 +125,14 @@ def useless_card_hint(observation):
             if given_hints[idx]['color'] is None:
                 hints.append({'action_type': 'REVEAL_COLOR', 'target_offset': i, 'color': card['color']})
     return random.choice(hints) if hints else None
+
+
+def rank_hint(observation, rank):
+    if observation['information_tokens'] == 0:
+        return None
+    rank = int(rank)
+    move = {'action_type': 'REVEAL_RANK', 'target_offset': 1, 'rank': rank}
+    return move if any(map(lambda x: x['rank'] == rank, observation['observed_hands'][1])) else None
 
 
 def piers_useless_card_hint(observation):
@@ -242,9 +252,9 @@ def get_completing_hints(observation, offset):
     for idx, card in playable_cards:
         hinted_rank = given_hints[idx]['rank'] is not None
         hinted_color = given_hints[idx]['color'] is not None
-        if hinted_color ^ hinted_rank:  # do not hint 2 hints done, hint remaining
+        if hinted_color ^ hinted_rank:
             action_type = 'REVEAL_' + ('COLOR' if hinted_rank else 'RANK')
-            mp = {'action_type': action_type, 'target_offset': 1}
+            mp = {'action_type': action_type, 'target_offset': offset}
             if hinted_rank:
                 mp['color'] = card['color']
             else:
@@ -381,8 +391,9 @@ action_map = {
     "VDBProbabilityDiscard": vdb_probability_discard
 }
 
-probability_action_map = {
-    "ProbabilityPlay": probability_play
+parametrized_action_map = {
+    "ProbabilityPlay": probability_play,
+    "RankHint": rank_hint
 }
 
 state_action_map = {

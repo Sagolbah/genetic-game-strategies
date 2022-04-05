@@ -16,7 +16,7 @@ class OnePlusOneGeneticAlgorithm<T : Individual<T>>(env: Environment<T>, val epo
 
     override fun evaluatePopulation() {
         super.evaluatePopulation()
-        println("Epoch %d, fitness %d".format(epoch, currentPopulation[0].getFitness()))
+        println("Epoch %d, fitness %f".format(epoch, currentPopulation[0].getFitness()))
     }
 
     override fun mutate(): List<T> {

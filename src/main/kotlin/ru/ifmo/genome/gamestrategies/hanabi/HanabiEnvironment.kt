@@ -10,9 +10,10 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.encodeToString as jsonEncode
 import ru.ifmo.genome.gamestrategies.core.Environment
 import ru.ifmo.genome.gamestrategies.hanabi.strategies.GeneticHanabiStrategy
-import ru.ifmo.genome.gamestrategies.hanabi.strategies.preparedAgents.*
 
 class HanabiEnvironment : Environment<GeneticHanabiStrategy> {
+    private val seed = System.currentTimeMillis().toInt()
+
     private val client = HttpClient(CIO) {
         install(WebSockets) {
             // Configure WebSockets
@@ -23,11 +24,14 @@ class HanabiEnvironment : Environment<GeneticHanabiStrategy> {
         var result = 0.0
         runBlocking {
             client.webSocket(method = HttpMethod.Get, host = "127.0.0.1", port = 8765, path = "/") {
-                send(Json.jsonEncode(RunConfiguration(20, 1, listOf(individual.getStrategy(), VanDenBergh.getStrategy()))))
-                val interactorResult = incoming.receive() as? Frame.Text
-                result = interactorResult?.readText()!!.toDouble()
+                send(Json.jsonEncode(RunConfiguration(15, seed, List(2) {individual.getStrategy()})))
+                result += (incoming.receive() as? Frame.Text)?.readText()!!.toDouble()
+            }
+            client.webSocket(method = HttpMethod.Get, host = "127.0.0.1", port = 8765, path = "/") {
+                send(Json.jsonEncode(RunConfiguration(15, seed, List(3) { individual.getStrategy() })))
+                result += (incoming.receive() as? Frame.Text)?.readText()!!.toDouble()
             }
         }
-        return result
+        return result / 2
     }
 }
