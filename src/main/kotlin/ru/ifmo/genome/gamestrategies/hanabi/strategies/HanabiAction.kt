@@ -28,12 +28,6 @@ sealed class HanabiAction {
     object CompletePlayableHint : HanabiAction()
 
     /**
-     * Same as [PlayableHint], but hint affects maximum amount of cards.
-     */
-    @Serializable
-    object GreedyPlayableHint : HanabiAction()
-
-    /**
      * Tells a random hint about useless card.
      */
     @Serializable
@@ -70,6 +64,14 @@ sealed class HanabiAction {
     @Serializable
     object NonHintedDiscard : HanabiAction()
 
+    /**
+     * Discards card with highest rank
+     */
+    @Serializable
+    object HighestRankDiscard : HanabiAction()
+
+
+
     // PLAY ACTIONS
 
     /**
@@ -95,6 +97,16 @@ sealed class HanabiAction {
     @Serializable
     data class ProbabilityPlay(val value: Double) : HanabiAction()
 
+    /**
+     * Plays card with the highest success probability if deck is empty and more than 1 life remaining.
+     * Used in Piers agent.
+     * Required probabilities are generally lower
+     *
+     * @param value probability threshold
+     */
+    @Serializable
+    data class EmptyDeckProbabilityPlay(val value: Double) : HanabiAction()
+
 
     // UTILITY SECTION - MOSTLY ALL USED ONLY IN VALIDATION AGENTS
 
@@ -119,13 +131,6 @@ sealed class HanabiAction {
      */
     @Serializable
     object OldestDiscard : HanabiAction()
-
-    /**
-     * Plays card with the highest success probability if deck is empty and more than 1 life remaining.
-     * CAN be used in evolved agents, since it's pretty easy to use.
-     */
-    @Serializable
-    object PiersProbabilityPlay : HanabiAction()
 
     /**
      * Same as [UselessCardHint], but works only if < 4 information tokens available.

@@ -6,7 +6,8 @@ import kotlin.random.Random
 
 class GeneticHanabiStrategy(private var rules: List<HanabiAction>) : RuleBasedHanabiStrategy, Individual<GeneticHanabiStrategy> {
     private val strategySize = rules.size
-    private val probabilities = listOf(0.0, 0.25, 0.5, 0.75)
+    private val probabilities = listOf(0.0, 0.2, 0.4, 0.5, 0.6, 0.8)
+    private val probabilitiesEmptyDeck = listOf(0.0, 0.1, 0.25, 0.4, 0.5)
     private var fitness = 0.0
 
     override fun mutate(): GeneticHanabiStrategy {
@@ -17,6 +18,8 @@ class GeneticHanabiStrategy(private var rules: List<HanabiAction>) : RuleBasedHa
             var newRule = hanabiActionPool[Random.nextInt(hanabiActionPool.size)]
             if (newRule is HanabiAction.ProbabilityPlay) {
                 newRule = HanabiAction.ProbabilityPlay(probabilities.random())
+            } else if (newRule is HanabiAction.EmptyDeckProbabilityPlay) {
+                newRule = HanabiAction.EmptyDeckProbabilityPlay(probabilitiesEmptyDeck.random())
             }
             newRules[oldRuleIdx] = newRule
         } else {

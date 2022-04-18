@@ -59,7 +59,7 @@ val Flawed = RuleBasedHanabiStrategy {
 
 val Piers = RuleBasedHanabiStrategy {
     listOf(
-        HanabiAction.PiersProbabilityPlay,
+        HanabiAction.EmptyDeckProbabilityPlay(0.0),
         HanabiAction.SafePlay,
         HanabiAction.ProbabilityPlay(0.6),
         HanabiAction.PlayableHint,
@@ -70,3 +70,16 @@ val Piers = RuleBasedHanabiStrategy {
         HanabiAction.RandomDiscard
     )
 }
+
+val OnePlusOneGenerated = RuleBasedHanabiStrategy {
+    listOf(
+        HanabiAction.PlayableHint,
+        HanabiAction.ProbabilityPlay(0.5),
+        HanabiAction.UselessDiscard,
+        HanabiAction.NonHintedDiscard,
+        HanabiAction.RankHint(4),
+        HanabiAction.CompletePlayableHint,
+        HanabiAction.SafePlay
+    )
+}
+

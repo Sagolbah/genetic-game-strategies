@@ -58,10 +58,10 @@ def probability_play(observation, probability):
     return {'action_type': 'PLAY', 'card_index': best_idx}
 
 
-def piers_probability_play(observation):
+def empty_deck_probability_play(observation, probability):
     if observation['deck_size'] != 0 or observation['life_tokens'] == 1:
         return None
-    return probability_play(observation, 0)
+    return probability_play(observation, probability)
 
 
 # noinspection PyTypeChecker
@@ -217,6 +217,20 @@ def vdb_probability_discard(observation):
             if prob > best_prob:
                 best_idx = card_index
                 best_prob = prob
+    if best_idx == -1:
+        return None
+    return {'action_type': 'DISCARD', 'card_index': best_idx}
+
+
+def highest_rank_discard(observation):
+    if observation['information_tokens'] == 8:
+        return None
+    best_idx = -1
+    best_rank = -1
+    for card_index, hint in enumerate(observation['card_knowledge'][0]):
+        if hint['rank'] is not None and hint['rank'] > best_rank:
+            best_rank = hint['rank']
+            best_idx = card_index
     if best_idx == -1:
         return None
     return {'action_type': 'DISCARD', 'card_index': best_idx}
@@ -385,14 +399,15 @@ action_map = {
     "LegalRandom": legal_random,
     "WeakPlayableHint": weak_playable_hint,
     "UselessCardHint": useless_card_hint,
-    "PiersProbabilityPlay": piers_probability_play,
     "PiersUselessCardHint": piers_useless_card_hint,
     "GreedyHint": greedy_hint,
-    "VDBProbabilityDiscard": vdb_probability_discard
+    "VDBProbabilityDiscard": vdb_probability_discard,
+    "HighestRankDiscard": highest_rank_discard
 }
 
 parametrized_action_map = {
     "ProbabilityPlay": probability_play,
+    "EmptyDeckProbabilityPlay": empty_deck_probability_play,
     "RankHint": rank_hint
 }
 

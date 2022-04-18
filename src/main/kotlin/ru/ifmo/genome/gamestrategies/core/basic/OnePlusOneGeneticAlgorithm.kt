@@ -14,26 +14,21 @@ class OnePlusOneGeneticAlgorithm<T : Individual<T>>(env: Environment<T>, val epo
         return listOf(start)
     }
 
-    override fun evaluatePopulation() {
-        super.evaluatePopulation()
-        println("Epoch %d, fitness %f".format(epoch, currentPopulation[0].getFitness()))
-    }
-
-    override fun mutate(): List<T> {
-        return currentPopulation  // skip the mutation phase
-    }
-
     override fun selectParents(): List<T> {
-        val newCandidate = currentPopulation[0].mutate()
-        newCandidate.setFitness(env.fit(newCandidate))
-        return if (newCandidate.getFitness() > currentPopulation[0].getFitness()) {
-            listOf(newCandidate)
-        } else {
-            currentPopulation
-        }
+        return currentPopulation
     }
 
-    override fun crossover(): List<T> {
-        return currentPopulation
+    override fun crossover(parents: List<T>): List<T> {
+        return currentPopulation  // skip crossover
+    }
+
+    override fun selectSurvivors(parents: List<T>, children: List<T>): List<T> {
+        val parent = parents[0]
+        val child = children[0]
+        return listOf(if (parent.getFitness() > child.getFitness()) parent else child)
+    }
+
+    override fun logEpoch() {
+        println("Epoch %d, fitness %f".format(epoch, currentPopulation[0].getFitness()))
     }
 }
