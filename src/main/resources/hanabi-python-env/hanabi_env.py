@@ -7,7 +7,7 @@ import random
 import websockets
 from statistics import mean
 from hanabi_learning_environment import rl_env, pyhanabi
-from hanabi_actions import action, parse_action, terminal_safe_legal_random
+from hanabi_actions import action, terminal_safe_legal_random
 
 from hanabi_learning_environment.rl_env import Agent
 
@@ -37,7 +37,7 @@ class HanabiAgent(Agent):
         for rule in self.strategy:
             result = action(observation, rule, self.card_time)
             if result is not None:
-                # print('Agent: {}, Action type: {}, Final action: {}'.format(observation['current_player'], parse_action(rule['type']), result))
+                # print('Agent: {}, Action type: {}, Final action: {}'.format(observation['current_player'], rule['type'], result))
                 return result
         # Legal random action if all rules were not applicable
         result = terminal_safe_legal_random(observation)

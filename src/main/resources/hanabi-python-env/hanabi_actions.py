@@ -3,12 +3,9 @@ import random
 
 # All actions return None if they are impossible / not available
 
-def parse_action(name):
-    return name.split('.')[-1]
-
 
 def action(observation, rule, state):
-    name = parse_action(rule['type'])
+    name = rule['type']
     if name in state_action_map:
         return state_action_map[name](observation, state)
     if name in parametrized_action_map:

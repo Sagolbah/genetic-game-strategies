@@ -1,5 +1,6 @@
 package ru.ifmo.genome.gamestrategies.hanabi.strategies
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -12,6 +13,7 @@ sealed class HanabiAction {
      * Tells random hint
      */
     @Serializable
+    @SerialName("RandomHint")
     object RandomHint : HanabiAction()
 
     /**
@@ -19,18 +21,21 @@ sealed class HanabiAction {
      * If card is known partially, completes it.
      */
     @Serializable
+    @SerialName("PlayableHint")
     object PlayableHint : HanabiAction()
 
     /**
      * If a playable card was hinted color or rank, performs second hint with missing information.
      */
     @Serializable
+    @SerialName("CompletePlayableHint")
     object CompletePlayableHint : HanabiAction()
 
     /**
      * Tells a random hint about useless card.
      */
     @Serializable
+    @SerialName("UselessCardHint")
     object UselessCardHint : HanabiAction()
 
     /**
@@ -41,6 +46,7 @@ sealed class HanabiAction {
      * @param value rank to hint
      */
     @Serializable
+    @SerialName("RankHint")
     data class RankHint(val value: Int) : HanabiAction()
 
     // DISCARD ACTIONS
@@ -49,6 +55,7 @@ sealed class HanabiAction {
      * Discards random card
      */
     @Serializable
+    @SerialName("RandomDiscard")
     object RandomDiscard : HanabiAction()
 
     /**
@@ -56,18 +63,21 @@ sealed class HanabiAction {
      * For example, all red cards are useless if "5-Red stack" is on the board.
      */
     @Serializable
+    @SerialName("UselessDiscard")
     object UselessDiscard : HanabiAction()
 
     /**
      * Discards a card which was not hinted
      */
     @Serializable
+    @SerialName("NonHintedDiscard")
     object NonHintedDiscard : HanabiAction()
 
     /**
      * Discards card with highest rank
      */
     @Serializable
+    @SerialName("HighestRankDiscard")
     object HighestRankDiscard : HanabiAction()
 
 
@@ -80,6 +90,7 @@ sealed class HanabiAction {
      * Another example - card with rank 1 on empty table.
      */
     @Serializable
+    @SerialName("SafePlay")
     object SafePlay : HanabiAction()
 
     /**
@@ -95,6 +106,7 @@ sealed class HanabiAction {
      * @param value probability threshold
      */
     @Serializable
+    @SerialName("ProbabilityPlay")
     data class ProbabilityPlay(val value: Double) : HanabiAction()
 
     /**
@@ -105,6 +117,7 @@ sealed class HanabiAction {
      * @param value probability threshold
      */
     @Serializable
+    @SerialName("EmptyDeckProbabilityPlay")
     data class EmptyDeckProbabilityPlay(val value: Double) : HanabiAction()
 
 
@@ -116,6 +129,7 @@ sealed class HanabiAction {
      * Used only in "Legal Random" agent in validation.
      */
     @Serializable
+    @SerialName("LegalRandom")
     object LegalRandom : HanabiAction()
 
     /**
@@ -123,6 +137,7 @@ sealed class HanabiAction {
      * Used in "Internal" agent.
      */
     @Serializable
+    @SerialName("WeakPlayableHint")
     object WeakPlayableHint : HanabiAction()
 
     /**
@@ -130,12 +145,14 @@ sealed class HanabiAction {
      * Used in "IGGI" and "Flawed" agents.
      */
     @Serializable
+    @SerialName("OldestDiscard")
     object OldestDiscard : HanabiAction()
 
     /**
      * Same as [UselessCardHint], but works only if < 4 information tokens available.
      */
     @Serializable
+    @SerialName("PiersUselessCardHint")
     object PiersUselessCardHint : HanabiAction()
 
     /**
@@ -143,6 +160,7 @@ sealed class HanabiAction {
      * Probability works the same as [ProbabilityPlay], but instead of playable cards we count useless.
      */
     @Serializable
+    @SerialName("VDBProbabilityDiscard")
     object VDBProbabilityDiscard : HanabiAction()
 
     /**
@@ -150,6 +168,7 @@ sealed class HanabiAction {
      * Used in Van den Bergh agent.
      */
     @Serializable
+    @SerialName("GreedyHint")
     object GreedyHint : HanabiAction()
 
 }
