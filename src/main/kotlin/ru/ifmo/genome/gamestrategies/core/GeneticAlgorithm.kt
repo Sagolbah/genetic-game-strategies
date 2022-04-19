@@ -16,7 +16,7 @@ abstract class GeneticAlgorithm<T : Individual<T>>(protected open val env: Envir
 
     abstract fun crossover(parents: List<T>) : List<T>
 
-    abstract fun selectSurvivors(parents: List<T>, children: List<T>): List<T>
+    abstract fun selectSurvivors(oldPopulation: List<T>, children: List<T>): List<T>
 
     open fun evaluatePopulation(population: List<T>) {
         population.forEach { x -> x.setFitness(env.fit(x)) }
@@ -26,13 +26,13 @@ abstract class GeneticAlgorithm<T : Individual<T>>(protected open val env: Envir
         return individuals.map { x -> x.mutate() }.toList()
     }
 
-    open fun logEpoch() {}
+    open fun onEpochBeginning() {}
 
     open fun evaluate() : List<T> {
         currentPopulation = initPopulation()
         evaluatePopulation(currentPopulation)
         while (!terminateCondition()) {
-            logEpoch()
+            onEpochBeginning()
             epoch++
             val parentsForCrossover = selectParents()
             val mutatedChildren = mutate(crossover(parentsForCrossover))

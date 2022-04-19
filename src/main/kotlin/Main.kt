@@ -3,17 +3,16 @@ import kotlinx.serialization.encodeToString as jsonEncode
 import ru.ifmo.genome.gamestrategies.core.basic.OnePlusOneGeneticAlgorithm
 import ru.ifmo.genome.gamestrategies.hanabi.HanabiEnvironment
 import ru.ifmo.genome.gamestrategies.hanabi.HanabiGeneticAlgorithm
+import ru.ifmo.genome.gamestrategies.hanabi.benchmark.MirrorBenchmark
 import ru.ifmo.genome.gamestrategies.hanabi.strategies.GeneticHanabiStrategy
 import ru.ifmo.genome.gamestrategies.hanabi.strategies.HanabiAction
 import ru.ifmo.genome.gamestrategies.hanabi.strategies.hanabiActionPool
-import ru.ifmo.genome.gamestrategies.hanabi.strategies.preparedAgents.*
 
 fun main(args: Array<String>) {
     val env = HanabiEnvironment()
-    evaluate(env, 6)
+    val result = HanabiGeneticAlgorithm(env, 50, strategySize = 8).evaluate()
+    println(Json.jsonEncode(result.maxByOrNull { x -> x.getFitness() }!!.getStrategy()))
 }
-
-
 
 
 fun evaluate(env: HanabiEnvironment, size: Int) {

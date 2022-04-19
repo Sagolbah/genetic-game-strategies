@@ -22,13 +22,13 @@ class OnePlusOneGeneticAlgorithm<T : Individual<T>>(env: Environment<T>, val epo
         return currentPopulation  // skip crossover
     }
 
-    override fun selectSurvivors(parents: List<T>, children: List<T>): List<T> {
-        val parent = parents[0]
+    override fun selectSurvivors(oldPopulation: List<T>, children: List<T>): List<T> {
+        val parent = oldPopulation[0]
         val child = children[0]
         return listOf(if (parent.getFitness() > child.getFitness()) parent else child)
     }
 
-    override fun logEpoch() {
+    override fun onEpochBeginning() {
         println("Epoch %d, fitness %f".format(epoch, currentPopulation[0].getFitness()))
     }
 }
