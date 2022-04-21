@@ -16,5 +16,6 @@ val hanabiActionPool: List<HanabiAction> = listOf(
     HanabiAction.HighestRankDiscard,
     HanabiAction.SafePlay,
     HanabiAction.ProbabilityPlay(0.5),
-    HanabiAction.EmptyDeckProbabilityPlay(0.0)
+    HanabiAction.EmptyDeckProbabilityPlay(0.0),
+    HanabiAction.OldestDiscard
 )

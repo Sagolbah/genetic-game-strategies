@@ -10,14 +10,18 @@ from hanabi_learning_environment import rl_env, pyhanabi
 from hanabi_actions import action, terminal_safe_legal_random
 
 from hanabi_learning_environment.rl_env import Agent
+from multiprocessing import Pool
+import concurrent.futures
+import functools
 
 
 class HanabiAgent(Agent):
 
-    def __init__(self, config, strategy):
+    def __init__(self, config, strategy, rng):
         """Initialize the agent."""
         self.config = config
         self.strategy = strategy
+        self.rng = rng
         self.max_information_tokens = config.get('information_tokens', 8)
         # Utility data for testing agents. Evolved agents must not use this data.
         self.time = 0
@@ -35,12 +39,12 @@ class HanabiAgent(Agent):
     def do_act(self, observation):
         """Act based on an observation."""
         for rule in self.strategy:
-            result = action(observation, rule, self.card_time)
+            result = action(observation, self.rng, rule, self.card_time)
             if result is not None:
                 # print('Agent: {}, Action type: {}, Final action: {}'.format(observation['current_player'], rule['type'], result))
                 return result
         # Legal random action if all rules were not applicable
-        result = terminal_safe_legal_random(observation)
+        result = terminal_safe_legal_random(observation, self.rng)
         # print('Agent: {}, Action type: Terminal legal random, Final action: {}'.format(observation['current_player'], result))
         return result
 
@@ -52,18 +56,18 @@ class Runner(object):
         """Initialize runner."""
         self.config = config
         self.agent_config = {'players': len(config['players'])}
-        random.seed(config['seed'])
-        self.seeds = [random.randint(0, 100000000) for _ in range(config['rounds'])]
+        seedgen = random.Random(config['seed'])
+        self.seeds = [seedgen.randint(0, 100000000) for _ in range(config['rounds'])]
         self.agent_class = HanabiAgent
 
     def run(self):
         """Run episodes."""
         rewards = []
         for episode in range(self.config['rounds']):
-            random.seed(self.seeds[episode])
+            episode_rng = random.Random(self.seeds[episode])
             environment = self.make_environment(self.seeds[episode], len(self.config['players']))
             observations = environment.reset()
-            agents = [self.agent_class(self.agent_config, strategy)
+            agents = [self.agent_class(self.agent_config, strategy, episode_rng)
                       for strategy in self.config['players']]
             done = False
             episode_reward = 0
@@ -97,15 +101,23 @@ class Runner(object):
             "observation_type": pyhanabi.AgentObservationType.CARD_KNOWLEDGE.value})
 
 
-async def fit(websocket):
-    message = await websocket.recv()
-    print(message)
+def evaluate(message):
     runner = Runner(json.loads(message))
     rewards = runner.run()
     fitness = mean(rewards)
-    await websocket.send(str(fitness))
     print(f">>> {rewards}")
     print("Average: " + str(fitness))
+    return fitness
+
+
+pool = concurrent.futures.ProcessPoolExecutor(max_workers = 3)
+
+
+async def fit(websocket):
+    message = await websocket.recv()
+    print(message)
+    fitness = await asyncio.get_running_loop().run_in_executor(pool, functools.partial(evaluate, message))
+    await websocket.send(str(fitness))
 
 
 async def main():

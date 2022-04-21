@@ -1,19 +1,20 @@
 import random
+from functools import partial
 
 
 # All actions return None if they are impossible / not available
 
 
-def action(observation, rule, state):
+def action(observation, rng, rule, state):
     name = rule['type']
     if name in state_action_map:
-        return state_action_map[name](observation, state)
+        return state_action_map[name](observation, rng, state)
     if name in parametrized_action_map:
-        return parametrized_action_map[name](observation, float(rule['value']))
-    return action_map[name](observation)
+        return parametrized_action_map[name](observation, rng, float(rule['value']))
+    return action_map[name](observation, rng)
 
 
-def safe_play(observation):
+def safe_play(observation, rng):
     # Check equal ranks of piles
     firework_ranks = set(observation['fireworks'].values())
     safe_rank = -1
@@ -27,14 +28,14 @@ def safe_play(observation):
         if hint['color'] is not None and hint['rank'] is not None and playable_card(hint, observation['fireworks']):
             safe_cards_indices.add(card_index)
     if safe_cards_indices:
-        return {'action_type': 'PLAY', 'card_index': random.choice(list(safe_cards_indices))}
+        return {'action_type': 'PLAY', 'card_index': rng.choice(list(safe_cards_indices))}
     return None
 
 
-def probability_play(observation, probability):
+def probability_play(observation, rng, probability):
     if observation['life_tokens'] == 1:  # do not take risk if we can't lose life tokens
         return None
-    safe_attempt = safe_play(observation)
+    safe_attempt = safe_play(observation, rng)
     if safe_attempt is not None:  # corner case -- a safe card with probability 1
         return safe_attempt
     best_prob = -1
@@ -55,14 +56,14 @@ def probability_play(observation, probability):
     return {'action_type': 'PLAY', 'card_index': best_idx}
 
 
-def empty_deck_probability_play(observation, probability):
+def empty_deck_probability_play(observation, rng, probability):
     if observation['deck_size'] != 0 or observation['life_tokens'] == 1:
         return None
-    return probability_play(observation, probability)
+    return probability_play(observation, rng, probability)
 
 
 # noinspection PyTypeChecker
-def playable_hint(observation):
+def playable_hint(observation, rng):
     if observation['information_tokens'] == 0:
         return None
     playable_hints = []
@@ -75,22 +76,22 @@ def playable_hint(observation):
             elif given_hints[idx]['color'] is None:
                 playable_hints.append({'action_type': 'REVEAL_COLOR', 'target_offset': i, 'color': card['color']})
     if playable_hints:
-        return random.choice(playable_hints)
+        return rng.choice(playable_hints)
     return None
 
 
-def complete_playable_hint(observation):
+def complete_playable_hint(observation, rng):
     if observation['information_tokens'] == 0:
         return None
     completing_hints = []
     for i in range(1, len(observation['observed_hands'])):
         completing_hints += get_completing_hints(observation, i)
     if completing_hints:
-        return random.choice(completing_hints)
+        return rng.choice(completing_hints)
     return None
 
 
-def weak_playable_hint(observation):
+def weak_playable_hint(observation, rng):
     if observation['information_tokens'] == 0:
         return None
     playable_cards = get_all_playable_cards(observation, 1)
@@ -98,17 +99,17 @@ def weak_playable_hint(observation):
     for _, card in playable_cards:  # TODO: do we need set here?
         hints.append({'action_type': 'REVEAL_RANK', 'target_offset': 1, 'rank': card['rank']})
         hints.append({'action_type': 'REVEAL_COLOR', 'target_offset': 1, 'color': card['color']})
-    return random.choice(hints) if hints else None
+    return rng.choice(hints) if hints else None
 
 
-def random_hint(observation):
+def random_hint(observation, rng):
     if observation['information_tokens'] > 0:
         moves = list(filter(lambda x: x['action_type'].startswith('REVEAL'), observation['legal_moves']))
-        return random.choice(moves)
+        return rng.choice(moves)
     return None
 
 
-def useless_card_hint(observation):
+def useless_card_hint(observation, rng):
     if observation['information_tokens'] == 0:
         return None
     hints = []
@@ -121,10 +122,10 @@ def useless_card_hint(observation):
                 hints.append({'action_type': 'REVEAL_RANK', 'target_offset': i, 'rank': card['rank']})
             if given_hints[idx]['color'] is None:
                 hints.append({'action_type': 'REVEAL_COLOR', 'target_offset': i, 'color': card['color']})
-    return random.choice(hints) if hints else None
+    return rng.choice(hints) if hints else None
 
 
-def rank_hint(observation, rank):
+def rank_hint(observation, rng, rank):
     if observation['information_tokens'] == 0:
         return None
     rank = int(rank)
@@ -132,13 +133,13 @@ def rank_hint(observation, rank):
     return move if any(map(lambda x: x['rank'] == rank, observation['observed_hands'][1])) else None
 
 
-def piers_useless_card_hint(observation):
+def piers_useless_card_hint(observation, rng):
     if observation['information_tokens'] >= 4:
         return None
-    return useless_card_hint(observation)
+    return useless_card_hint(observation, rng)
 
 
-def greedy_hint(observation):
+def greedy_hint(observation, rng):
     if observation['information_tokens'] == 0:
         return None
 
@@ -163,7 +164,7 @@ def greedy_hint(observation):
     return best_hint
 
 
-def non_hinted_discard(observation):
+def non_hinted_discard(observation, rng):
     if observation['information_tokens'] == 8:
         return None
     for card_index, hint in enumerate(observation['card_knowledge'][0]):
@@ -172,13 +173,13 @@ def non_hinted_discard(observation):
     return None
 
 
-def random_discard(observation):
+def random_discard(observation, rng):
     if observation['information_tokens'] == 8:
         return None
-    return {'action_type': 'DISCARD', 'card_index': random.randint(0, len(observation['card_knowledge'][0]) - 1)}
+    return {'action_type': 'DISCARD', 'card_index': rng.randint(0, len(observation['card_knowledge'][0]) - 1)}
 
 
-def useless_discard(observation):
+def useless_discard(observation, rng):
     if observation['information_tokens'] == 8:
         return None
     for card_index, card in enumerate(observation['card_knowledge'][0]):
@@ -187,7 +188,7 @@ def useless_discard(observation):
     return None
 
 
-def oldest_discard(observation, state):
+def oldest_discard(observation, rng, state):
     if observation['information_tokens'] == 8:
         return None
     oldest_idx = min(range(len(observation['card_knowledge'][0])), key=state.__getitem__)
@@ -196,7 +197,7 @@ def oldest_discard(observation, state):
     return {'action_type': 'DISCARD', 'card_index': oldest_idx}
 
 
-def vdb_probability_discard(observation):
+def vdb_probability_discard(observation, rng):
     if observation['information_tokens'] == 8:
         return None
     best_prob = -1
@@ -219,7 +220,7 @@ def vdb_probability_discard(observation):
     return {'action_type': 'DISCARD', 'card_index': best_idx}
 
 
-def highest_rank_discard(observation):
+def highest_rank_discard(observation, rng):
     if observation['information_tokens'] == 8:
         return None
     best_idx = -1
@@ -281,13 +282,13 @@ def get_all_playable_cards(observation, offset):
 
 
 # Legal random "discard/hint" action. Used only when all rules are not applicable for current observation.
-def terminal_safe_legal_random(observation):
+def terminal_safe_legal_random(observation, rng):
     moves = list(filter(lambda x: x['action_type'] != 'PLAY', observation['legal_moves']))
-    return random.choice(moves)
+    return rng.choice(moves)
 
 
-def legal_random(observation):
-    return random.choice(observation['legal_moves'])
+def legal_random(observation, rng):
+    return rng.choice(observation['legal_moves'])
 
 
 def find_most_possible_rank(color, discard_pile):

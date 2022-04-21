@@ -24,15 +24,15 @@ class HanabiEnvironment : Environment<GeneticHanabiStrategy> {
         var result = 0.0
         runBlocking {
             client.webSocket(method = HttpMethod.Get, host = "127.0.0.1", port = 8765, path = "/") {
-                send(Json.jsonEncode(RunConfiguration(10, seed, List(2) { individual.getStrategy() })))
+                send(Json.jsonEncode(RunConfiguration(20, seed, List(2) { individual.getStrategy() })))
                 result += (incoming.receive() as? Frame.Text)?.readText()!!.toDouble()
             }
             client.webSocket(method = HttpMethod.Get, host = "127.0.0.1", port = 8765, path = "/") {
-                send(Json.jsonEncode(RunConfiguration(10, seed + 1, List(3) { individual.getStrategy() })))
+                send(Json.jsonEncode(RunConfiguration(20, seed + 1, List(3) { individual.getStrategy() })))
                 result += (incoming.receive() as? Frame.Text)?.readText()!!.toDouble()
             }
             client.webSocket(method = HttpMethod.Get, host = "127.0.0.1", port = 8765, path = "/") {
-                send(Json.jsonEncode(RunConfiguration(10, seed + 2, List(4) { individual.getStrategy() })))
+                send(Json.jsonEncode(RunConfiguration(20, seed + 2, List(4) { individual.getStrategy() })))
                 result += (incoming.receive() as? Frame.Text)?.readText()!!.toDouble()
             }
         }
