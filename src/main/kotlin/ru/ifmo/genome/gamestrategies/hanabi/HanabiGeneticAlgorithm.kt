@@ -10,10 +10,10 @@ class HanabiGeneticAlgorithm(
     override val env: Environment<GeneticHanabiStrategy>,
     private val epochs: Int,
     private val strategySize: Int = 7,
-    private val populationSize: Int = 32,
-    private val elitismCount: Int = 8,
-    private val mutationRate: Double = 0.8,
-    private val crossoverRate: Double = 0.9,
+    private val populationSize: Int = 48,
+    private val parentCount: Int = 24,
+    private val mutationRate: Double = 0.85,
+    private val crossoverRate: Double = 0.85,
     private val tournamentSize: Int = 3
 ) : GeneticAlgorithm<GeneticHanabiStrategy>(env) {
 
@@ -32,7 +32,7 @@ class HanabiGeneticAlgorithm(
     }
 
     override fun selectParents(): List<GeneticHanabiStrategy> {
-        return List(populationSize - elitismCount) { getParent() }
+        return List(parentCount) { getParent() }
     }
 
     override fun mutate(individuals: List<GeneticHanabiStrategy>): List<GeneticHanabiStrategy> {

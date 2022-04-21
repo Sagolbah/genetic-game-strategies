@@ -2,10 +2,10 @@ package ru.ifmo.genome.gamestrategies.hanabi
 
 import io.ktor.client.*
 import io.ktor.client.engine.cio.*
-import io.ktor.client.features.websocket.*
+import io.ktor.client.plugins.websocket.*
 import io.ktor.http.*
-import io.ktor.http.cio.websocket.*
-import kotlinx.coroutines.runBlocking
+import io.ktor.websocket.*
+import kotlinx.coroutines.*
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.encodeToString as jsonEncode
 import ru.ifmo.genome.gamestrategies.core.Environment
@@ -21,21 +21,21 @@ class HanabiEnvironment : Environment<GeneticHanabiStrategy> {
     }
 
     override fun fit(individual: GeneticHanabiStrategy): Double {
-        var result = 0.0
-        runBlocking {
-            client.webSocket(method = HttpMethod.Get, host = "127.0.0.1", port = 8765, path = "/") {
-                send(Json.jsonEncode(RunConfiguration(20, seed, List(2) { individual.getStrategy() })))
-                result += (incoming.receive() as? Frame.Text)?.readText()!!.toDouble()
-            }
-            client.webSocket(method = HttpMethod.Get, host = "127.0.0.1", port = 8765, path = "/") {
-                send(Json.jsonEncode(RunConfiguration(20, seed + 1, List(3) { individual.getStrategy() })))
-                result += (incoming.receive() as? Frame.Text)?.readText()!!.toDouble()
-            }
-            client.webSocket(method = HttpMethod.Get, host = "127.0.0.1", port = 8765, path = "/") {
-                send(Json.jsonEncode(RunConfiguration(20, seed + 2, List(4) { individual.getStrategy() })))
-                result += (incoming.receive() as? Frame.Text)?.readText()!!.toDouble()
-            }
+        return runBlocking {
+            val twoPlayers = async(Dispatchers.IO) { runEnvironment(individual, 0, 2) }
+            val threePlayers = async(Dispatchers.IO) { runEnvironment(individual, 1, 3) }
+            val fourPlayers = async(Dispatchers.IO) { runEnvironment(individual, 2, 4) }
+            (twoPlayers.await() + threePlayers.await() + fourPlayers.await()) / 3.0
         }
-        return result / 3
     }
+
+    private suspend fun runEnvironment(individual: GeneticHanabiStrategy, seedShift: Int, playersCnt: Int): Double {
+        var result: Double? = null
+        client.webSocket(method = HttpMethod.Get, host = "127.0.0.1", port = 8765, path = "/") {
+            send(Json.jsonEncode(RunConfiguration(30, seed + seedShift, List(playersCnt) { individual.getStrategy() })))
+            result = (incoming.receive() as? Frame.Text)?.readText()!!.toDouble()
+        }
+        return result ?: throw IllegalStateException("Result is not initialized")
+    }
+
 }

@@ -9,19 +9,9 @@ import ru.ifmo.genome.gamestrategies.hanabi.strategies.HanabiAction
 import ru.ifmo.genome.gamestrategies.hanabi.strategies.hanabiActionPool
 
 fun main(args: Array<String>) {
-    //val env = HanabiEnvironment()
-    //val result = HanabiGeneticAlgorithm(env, 70, strategySize = 8).evaluate()
-    //println(Json.jsonEncode(result.maxByOrNull { x -> x.getFitness() }!!.getStrategy()))
-    MirrorBenchmark().runBenchmark(GeneticHanabiStrategy(listOf(
-        HanabiAction.ProbabilityPlay(0.6),
-        HanabiAction.EmptyDeckProbabilityPlay(0.25),
-        HanabiAction.SafePlay,
-        HanabiAction.PlayableHint,
-        HanabiAction.UselessDiscard,
-        HanabiAction.NonHintedDiscard,
-        HanabiAction.OldestDiscard,
-        HanabiAction.RankHint(4)
-    )))
+    val env = HanabiEnvironment()
+    val result = HanabiGeneticAlgorithm(env, 100, strategySize = 9).evaluate()
+    println(Json.jsonEncode(result.maxByOrNull { x -> x.getFitness() }!!.getStrategy()))
 }
 
 
