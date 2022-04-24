@@ -142,7 +142,6 @@ def piers_useless_card_hint(observation, rng):
 def greedy_hint(observation, rng):
     if observation['information_tokens'] == 0:
         return None
-
     best_hint = None
     best_info = 0
     moves = list(filter(lambda x: x['action_type'].startswith('REVEAL'), observation['legal_moves']))
@@ -162,6 +161,18 @@ def greedy_hint(observation, rng):
             best_info = info_cnt
             best_hint = move
     return best_hint
+
+
+def unknown_card_hint(observation, rng):
+    if observation['information_tokens'] == 0:
+        return None
+    moves = list(filter(lambda x: x['action_type'].startswith('REVEAL'), observation['legal_moves']))
+    for move in rng.shuffle(moves):
+        given_hints = observation['card_knowledge'][move['target_offset']]
+        for i in range(len(given_hints)):
+            if given_hints[i]['color'] is None and given_hints[i]['rank'] is None:
+                return move
+    return None
 
 
 def non_hinted_discard(observation, rng):
@@ -192,8 +203,6 @@ def oldest_discard(observation, rng, state):
     if observation['information_tokens'] == 8:
         return None
     oldest_idx = min(range(len(observation['card_knowledge'][0])), key=state.__getitem__)
-    if sum(1 if state[oldest_idx] == x else 0 for x in state) > 1:
-        return None
     return {'action_type': 'DISCARD', 'card_index': oldest_idx}
 
 
@@ -399,6 +408,7 @@ action_map = {
     "UselessCardHint": useless_card_hint,
     "PiersUselessCardHint": piers_useless_card_hint,
     "GreedyHint": greedy_hint,
+    "UnknownCardHint": unknown_card_hint,
     "VDBProbabilityDiscard": vdb_probability_discard,
     "HighestRankDiscard": highest_rank_discard
 }

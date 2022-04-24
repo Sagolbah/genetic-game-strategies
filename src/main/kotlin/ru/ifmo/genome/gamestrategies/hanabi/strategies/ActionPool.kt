@@ -8,6 +8,7 @@ val hanabiActionPool: List<HanabiAction> = listOf(
     HanabiAction.PlayableHint,
     HanabiAction.CompletePlayableHint,
     HanabiAction.UselessCardHint,
+    HanabiAction.UnknownCardHint,
     HanabiAction.RankHint(0),
     HanabiAction.RankHint(4),
     HanabiAction.RandomDiscard,
@@ -19,3 +20,13 @@ val hanabiActionPool: List<HanabiAction> = listOf(
     HanabiAction.EmptyDeckProbabilityPlay(0.0),
     HanabiAction.OldestDiscard
 )
+
+/**
+ * Parameter values for [HanabiAction.ProbabilityPlay]
+ */
+val probabilityPlayParams = listOf(0.0, 0.2, 0.4, 0.5, 0.6, 0.8)
+
+/**
+ * Parameter values for [HanabiAction.EmptyDeckProbabilityPlay]
+ */
+val emptyDeckProbabilityPlayParams = listOf(0.0, 0.1, 0.2, 0.3, 0.5)

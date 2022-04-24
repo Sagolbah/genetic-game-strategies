@@ -39,6 +39,13 @@ sealed class HanabiAction {
     object UselessCardHint : HanabiAction()
 
     /**
+     * Tells a random hint about unknown card.
+     */
+    @Serializable
+    @SerialName("UnknownCardHint")
+    object UnknownCardHint : HanabiAction()
+
+    /**
      * Gives rank hint.
      * Mostly interested in 0 and 4 ranks, since they are useful in early/late game.
      * Ranks are provided in 0-indexation

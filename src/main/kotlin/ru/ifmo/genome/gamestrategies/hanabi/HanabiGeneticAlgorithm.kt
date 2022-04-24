@@ -12,7 +12,6 @@ class HanabiGeneticAlgorithm(
     private val strategySize: Int = 7,
     private val populationSize: Int = 48,
     private val parentCount: Int = 24,
-    private val mutationRate: Double = 0.85,
     private val crossoverRate: Double = 0.85,
     private val tournamentSize: Int = 3
 ) : GeneticAlgorithm<GeneticHanabiStrategy>(env) {
@@ -33,10 +32,6 @@ class HanabiGeneticAlgorithm(
 
     override fun selectParents(): List<GeneticHanabiStrategy> {
         return List(parentCount) { getParent() }
-    }
-
-    override fun mutate(individuals: List<GeneticHanabiStrategy>): List<GeneticHanabiStrategy> {
-        return individuals.map { x -> if (Random.nextDouble() < mutationRate) x.mutate() else x }.toList()
     }
 
     override fun crossover(parents: List<GeneticHanabiStrategy>): List<GeneticHanabiStrategy> {

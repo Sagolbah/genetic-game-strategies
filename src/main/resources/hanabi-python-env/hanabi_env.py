@@ -85,8 +85,8 @@ class Runner(object):
                     current_player_action)
                 episode_reward += reward
             rewards.append(episode_reward)
-            print('Running episode: %d' % episode)
-            print('Last Reward: %d' % episode_reward)
+            # print('Running episode: %d' % episode)
+            # print('Last Reward: %d' % episode_reward)
         return rewards
 
     @staticmethod

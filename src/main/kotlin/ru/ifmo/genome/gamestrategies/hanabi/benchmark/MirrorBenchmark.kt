@@ -14,7 +14,7 @@ import ru.ifmo.genome.gamestrategies.hanabi.strategies.GeneticHanabiStrategy
 import kotlinx.serialization.encodeToString as jsonEncode
 
 class MirrorBenchmark {
-    private val seed = System.currentTimeMillis().toInt()
+    private val seed = 0
 
     private val client = HttpClient(CIO) {
         install(WebSockets) {

@@ -10,7 +10,7 @@ import ru.ifmo.genome.gamestrategies.hanabi.strategies.hanabiActionPool
 
 fun main(args: Array<String>) {
     val env = HanabiEnvironment()
-    val result = HanabiGeneticAlgorithm(env, 100, strategySize = 9).evaluate()
+    val result = HanabiGeneticAlgorithm(env, 100, strategySize = 8).evaluate()
     println(Json.jsonEncode(result.maxByOrNull { x -> x.getFitness() }!!.getStrategy()))
 }
 
