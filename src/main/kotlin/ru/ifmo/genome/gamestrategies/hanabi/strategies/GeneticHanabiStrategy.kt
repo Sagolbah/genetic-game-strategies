@@ -27,6 +27,7 @@ class GeneticHanabiStrategy(private val rules: List<HanabiAction>) : RuleBasedHa
             is HanabiAction.EmptyDeckProbabilityPlay -> HanabiAction.EmptyDeckProbabilityPlay(
                 emptyDeckProbabilityPlayParams.random()
             )
+            is HanabiAction.StackDefenseHint -> HanabiAction.StackDefenseHint(stackDefenseParams.random())
             else -> rule
         }
     }

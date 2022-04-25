@@ -71,10 +71,7 @@ def playable_hint(observation, rng):
         given_hints = observation['card_knowledge'][i]
         playable_cards = get_all_playable_cards(observation, i)
         for idx, card in playable_cards:
-            if given_hints[idx]['rank'] is None:
-                playable_hints.append({'action_type': 'REVEAL_RANK', 'target_offset': i, 'rank': card['rank']})
-            elif given_hints[idx]['color'] is None:
-                playable_hints.append({'action_type': 'REVEAL_COLOR', 'target_offset': i, 'color': card['color']})
+            playable_hints += get_missing_hints(given_hints, idx, card, i)
     if playable_hints:
         return rng.choice(playable_hints)
     return None
@@ -118,10 +115,7 @@ def useless_card_hint(observation, rng):
         for idx, card in enumerate(observation['observed_hands'][i]):
             if not is_useless(observation['fireworks'], observation['discard_pile'], card):
                 continue
-            if given_hints[idx]['rank'] is None:
-                hints.append({'action_type': 'REVEAL_RANK', 'target_offset': i, 'rank': card['rank']})
-            if given_hints[idx]['color'] is None:
-                hints.append({'action_type': 'REVEAL_COLOR', 'target_offset': i, 'color': card['color']})
+            hints += get_missing_hints(given_hints, idx, card, i)
     return rng.choice(hints) if hints else None
 
 
@@ -167,12 +161,38 @@ def unknown_card_hint(observation, rng):
     if observation['information_tokens'] == 0:
         return None
     moves = list(filter(lambda x: x['action_type'].startswith('REVEAL'), observation['legal_moves']))
-    for move in rng.shuffle(moves):
+    hints = []
+    for move in moves:
         given_hints = observation['card_knowledge'][move['target_offset']]
         for i in range(len(given_hints)):
             if given_hints[i]['color'] is None and given_hints[i]['rank'] is None:
-                return move
-    return None
+                hints.append(move)
+    return rng.choice(hints) if hints else None
+
+
+def stack_defense_hint(observation, rng, max_rank):
+    if observation['information_tokens'] == 0:
+        return None
+    discard_pile = observation['discard_pile']
+    required_cards = dict(zip(game_colors, [0] * 5))
+    hints = []
+    max_rank = int(max_rank)
+    for card in discard_pile:
+        if playable_card(card, observation['fireworks']):
+            required_cards[card['color']] += 1
+    colors_to_defend = set()
+    for color in game_colors:
+        pile_rank = observation['fireworks'][color]
+        if required_cards[color] == cards_per_rank[pile_rank] - 1 and pile_rank <= max_rank:
+            colors_to_defend.add((color, pile_rank))
+    if len(colors_to_defend) == 0:
+        return None  # do not iterate hands
+    for i in range(1, len(observation['observed_hands'])):
+        given_hints = observation['card_knowledge'][i]
+        for idx, card in enumerate(observation['observed_hands'][i]):
+            if (card['color'], card['rank']) in colors_to_defend:
+                hints += get_missing_hints(given_hints, idx, card, i)
+    return rng.choice(hints) if hints else None
 
 
 def non_hinted_discard(observation, rng):
@@ -287,7 +307,8 @@ def get_completing_hints(observation, offset):
 # Returns all playable cards
 def get_all_playable_cards(observation, offset):
     fireworks = observation['fireworks']
-    return [(idx, card) for idx, card in enumerate(observation['observed_hands'][offset]) if playable_card(card, fireworks)]
+    return [(idx, card) for idx, card in enumerate(observation['observed_hands'][offset]) if
+            playable_card(card, fireworks)]
 
 
 # Legal random "discard/hint" action. Used only when all rules are not applicable for current observation.
@@ -376,7 +397,7 @@ def vdb_useless_probability_for_color(observation, color):
 
 
 def vdb_useless_probability_for_rank(observation, rank):
-    possible_cards = dict(zip(['B', 'G', 'R', 'W', 'Y'], [cards_per_rank[rank]] * 5))
+    possible_cards = dict(zip(game_colors, [cards_per_rank[rank]] * 5))
     for card in observation['discard_pile']:
         if card['rank'] == rank:
             possible_cards[card['color']] -= 1
@@ -393,6 +414,15 @@ def vdb_useless_probability_for_rank(observation, rank):
         if is_useless(observation['fireworks'], observation['discard_pile'], {'color': k, 'rank': rank}):
             useless_cards += v
     return 0 if possible_sum == 0 else useless_cards / possible_sum
+
+
+def get_missing_hints(given_hints, card_idx, card, offset):
+    hints = []
+    if given_hints[card_idx]['rank'] is None:
+        hints.append({'action_type': 'REVEAL_RANK', 'target_offset': offset, 'rank': card['rank']})
+    if given_hints[card_idx]['color'] is None:
+        hints.append({'action_type': 'REVEAL_COLOR', 'target_offset': offset, 'color': card['color']})
+    return hints
 
 
 action_map = {
@@ -416,7 +446,8 @@ action_map = {
 parametrized_action_map = {
     "ProbabilityPlay": probability_play,
     "EmptyDeckProbabilityPlay": empty_deck_probability_play,
-    "RankHint": rank_hint
+    "RankHint": rank_hint,
+    "StackDefenseHint": stack_defense_hint
 }
 
 state_action_map = {
@@ -431,3 +462,5 @@ cards_per_rank = {
     4: 1,
     5: 0
 }
+
+game_colors = ['B', 'G', 'R', 'W', 'Y']
