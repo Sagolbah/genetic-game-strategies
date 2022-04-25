@@ -3,16 +3,15 @@ package ru.ifmo.genome.gamestrategies.hanabi
 import ru.ifmo.genome.gamestrategies.core.Environment
 import ru.ifmo.genome.gamestrategies.core.GeneticAlgorithm
 import ru.ifmo.genome.gamestrategies.hanabi.strategies.GeneticHanabiStrategy
-import ru.ifmo.genome.gamestrategies.hanabi.strategies.hanabiActionPool
+import ru.ifmo.genome.gamestrategies.hanabi.strategies.randomAction
 import kotlin.random.Random
 
 class HanabiGeneticAlgorithm(
     override val env: Environment<GeneticHanabiStrategy>,
     private val epochs: Int,
     private val strategySize: Int = 7,
-    private val populationSize: Int = 48,
-    private val parentCount: Int = 24,
-    private val crossoverRate: Double = 0.85,
+    private val populationSize: Int = 40,
+    private val parentCount: Int = 20,
     private val tournamentSize: Int = 3
 ) : GeneticAlgorithm<GeneticHanabiStrategy>(env) {
 
@@ -22,7 +21,7 @@ class HanabiGeneticAlgorithm(
 
     override fun initPopulation(): List<GeneticHanabiStrategy> {
         return List(populationSize) {
-            GeneticHanabiStrategy(List(strategySize) { hanabiActionPool.random() })
+            GeneticHanabiStrategy(List(strategySize) { randomAction() })
         }
     }
 
@@ -37,11 +36,9 @@ class HanabiGeneticAlgorithm(
     override fun crossover(parents: List<GeneticHanabiStrategy>): List<GeneticHanabiStrategy> {
         val children = mutableListOf<GeneticHanabiStrategy>()
         for (i in parents.indices step 2) {
-            if (Random.nextDouble() < crossoverRate) {
-                val crossResult = orderedCrossover(parents[i], parents[i + 1])
-                children.add(crossResult.first)
-                children.add(crossResult.second)
-            }
+            val crossResult = orderedCrossover(parents[i], parents[i + 1])
+            children.add(crossResult.first)
+            children.add(crossResult.second)
         }
         return children
     }
@@ -55,7 +52,8 @@ class HanabiGeneticAlgorithm(
 
     override fun onEpochBeginning() {
         currentPopulation = currentPopulation.sortedByDescending { x -> x.getFitness() }
-        println("Epoch %d, best fitness: %.3f".format(epoch, currentPopulation[0].getFitness()))
+        val avg = currentPopulation.map { x -> x.getFitness() }.average()
+        println("Epoch %d, best fitness: %.3f, avg fitness: %.5f".format(epoch, currentPopulation[0].getFitness(), avg))
         println(currentPopulation.map { x -> x.getFitness() }.toString())
     }
 

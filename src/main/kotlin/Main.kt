@@ -9,13 +9,25 @@ import ru.ifmo.genome.gamestrategies.hanabi.strategies.HanabiAction
 import ru.ifmo.genome.gamestrategies.hanabi.strategies.hanabiActionPool
 
 fun main(args: Array<String>) {
-    val env = HanabiEnvironment()
-    val result = HanabiGeneticAlgorithm(env, 100, strategySize = 8).evaluate()
-    println(Json.jsonEncode(result.maxByOrNull { x -> x.getFitness() }!!.getStrategy()))
+    println("Running genetic algorithm")
+    val strategies = runGeneticAlgorithm()
+    val validationEnv = HanabiEnvironment(rounds = 1000)
+    for (strategy in strategies) {
+        println("Evaluating strategy: " + Json.jsonEncode(strategy.getStrategy()))
+        println(validationEnv.fit(strategy))
+    }
 }
 
 
-fun evaluate(env: HanabiEnvironment, size: Int) {
+fun runGeneticAlgorithm(): List<GeneticHanabiStrategy> {
+    val env = HanabiEnvironment(rounds = 50)
+    val result =
+        HanabiGeneticAlgorithm(env, 100, strategySize = 8).evaluate().sortedByDescending { x -> x.getFitness() }
+    return result.take(5)
+}
+
+
+fun evaluateOnePlusOne(env: HanabiEnvironment, size: Int) {
     println("=== $size ===")
     val startStrategy = GeneticHanabiStrategy(List(size) { hanabiActionPool.random() })
     val algo = OnePlusOneGeneticAlgorithm(env, 500, startStrategy)

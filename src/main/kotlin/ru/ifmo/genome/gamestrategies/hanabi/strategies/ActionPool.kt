@@ -37,3 +37,24 @@ val emptyDeckProbabilityPlayParams = listOf(0.0, 0.1, 0.2, 0.3, 0.5)
  * Rank 5 is excluded, as it's covered in [HanabiAction.PlayableHint]
  */
 val stackDefenseParams = IntArray(4) { it }
+
+/**
+ * Returns random action from pool
+ */
+fun randomAction(): HanabiAction {
+    return rollRuleParameter(hanabiActionPool.random())
+}
+
+/**
+ * Generates random parameter for parametrized rules
+ */
+private fun rollRuleParameter(rule: HanabiAction): HanabiAction {
+    return when (rule) {
+        is HanabiAction.ProbabilityPlay -> HanabiAction.ProbabilityPlay(probabilityPlayParams.random())
+        is HanabiAction.EmptyDeckProbabilityPlay -> HanabiAction.EmptyDeckProbabilityPlay(
+            emptyDeckProbabilityPlayParams.random()
+        )
+        is HanabiAction.StackDefenseHint -> HanabiAction.StackDefenseHint(stackDefenseParams.random())
+        else -> rule
+    }
+}

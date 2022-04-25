@@ -11,7 +11,7 @@ import kotlinx.serialization.encodeToString as jsonEncode
 import ru.ifmo.genome.gamestrategies.core.Environment
 import ru.ifmo.genome.gamestrategies.hanabi.strategies.GeneticHanabiStrategy
 
-class HanabiEnvironment : Environment<GeneticHanabiStrategy> {
+class HanabiEnvironment(val rounds: Int = 50) : Environment<GeneticHanabiStrategy> {
     private val seed = System.currentTimeMillis().toInt()
 
     private val client = HttpClient(CIO) {
@@ -32,7 +32,7 @@ class HanabiEnvironment : Environment<GeneticHanabiStrategy> {
     private suspend fun runEnvironment(individual: GeneticHanabiStrategy, seedShift: Int, playersCnt: Int): Double {
         var result: Double? = null
         client.webSocket(method = HttpMethod.Get, host = "127.0.0.1", port = 8765, path = "/") {
-            send(Json.jsonEncode(RunConfiguration(30, seed + seedShift, List(playersCnt) { individual.getStrategy() })))
+            send(Json.jsonEncode(RunConfiguration(rounds, seed + seedShift, List(playersCnt) { individual.getStrategy() })))
             result = (incoming.receive() as? Frame.Text)?.readText()!!.toDouble()
         }
         return result ?: throw IllegalStateException("Result is not initialized")

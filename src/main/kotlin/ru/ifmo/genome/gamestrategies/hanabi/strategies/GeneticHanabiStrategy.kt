@@ -16,20 +16,9 @@ class GeneticHanabiStrategy(private val rules: List<HanabiAction>) : RuleBasedHa
             indices = listOf(Random.nextInt(strategySize))
         }
         for (idx in indices) {
-            newRules[idx] = rollRuleParameter(hanabiActionPool.random())
+            newRules[idx] = randomAction()
         }
         return GeneticHanabiStrategy(newRules)
-    }
-
-    private fun rollRuleParameter(rule: HanabiAction): HanabiAction {
-        return when (rule) {
-            is HanabiAction.ProbabilityPlay -> HanabiAction.ProbabilityPlay(probabilityPlayParams.random())
-            is HanabiAction.EmptyDeckProbabilityPlay -> HanabiAction.EmptyDeckProbabilityPlay(
-                emptyDeckProbabilityPlayParams.random()
-            )
-            is HanabiAction.StackDefenseHint -> HanabiAction.StackDefenseHint(stackDefenseParams.random())
-            else -> rule
-        }
     }
 
 
