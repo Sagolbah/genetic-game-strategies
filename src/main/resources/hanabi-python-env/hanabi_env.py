@@ -95,6 +95,7 @@ class Runner(object):
             "colors": 5,
             "ranks": 5,
             "players": players,
+            "hand_size": 5 if players < 4 else 4,  # according to original Hanabi rules
             "max_information_tokens": 8,
             "max_life_tokens": 3,
             "seed": seed,
