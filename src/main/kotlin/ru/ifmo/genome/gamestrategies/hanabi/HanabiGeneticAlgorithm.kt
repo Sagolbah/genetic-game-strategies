@@ -47,6 +47,7 @@ class HanabiGeneticAlgorithm(
         oldPopulation: List<GeneticHanabiStrategy>,
         children: List<GeneticHanabiStrategy>
     ): List<GeneticHanabiStrategy> {
+        // TODO: Use elitism.
         return listOf(oldPopulation, children).flatten().sortedByDescending { x -> x.getFitness() }.take(populationSize)
     }
 

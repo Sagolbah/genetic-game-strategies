@@ -4,6 +4,11 @@ import ru.ifmo.genome.gamestrategies.core.Environment
 import ru.ifmo.genome.gamestrategies.tictactoe.strategies.GeneticTicTacToeStrategy
 import ru.ifmo.genome.gamestrategies.tictactoe.strategies.RandomTicTacToeStrategy
 
+
+/**
+ * Tic-tac-toe environment.
+ * Was made as a proof of concept for rule-based strategies and genetic algorithms to generate them.
+ */
 class TicTacToeEnvironment : Environment<GeneticTicTacToeStrategy> {
     private val field: Array<Array<FieldStatus>> = Array(3) { Array(3) { FieldStatus.FREE } }
     private val opponents: Array<RandomTicTacToeStrategy> = Array(1000) { i -> RandomTicTacToeStrategy(this, i) }
