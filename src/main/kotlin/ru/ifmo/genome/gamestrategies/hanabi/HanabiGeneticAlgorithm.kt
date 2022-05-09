@@ -11,8 +11,9 @@ class HanabiGeneticAlgorithm(
     private val epochs: Int,
     private val strategySize: Int = 7,
     private val populationSize: Int = 40,
-    private val parentCount: Int = 20,
-    private val tournamentSize: Int = 3
+    private val tournamentSize: Int = 3,
+    private val elitismCount: Int = 4,
+    private val forceNewChildren: Boolean = false  // If true, all parents except top $elitismCount are eliminated.
 ) : GeneticAlgorithm<GeneticHanabiStrategy>(env) {
 
     override fun terminateCondition(): Boolean {
@@ -30,7 +31,7 @@ class HanabiGeneticAlgorithm(
     }
 
     override fun selectParents(): List<GeneticHanabiStrategy> {
-        return List(parentCount) { getParent() }
+        return List(populationSize) { getParent() }
     }
 
     override fun crossover(parents: List<GeneticHanabiStrategy>): List<GeneticHanabiStrategy> {
@@ -47,14 +48,24 @@ class HanabiGeneticAlgorithm(
         oldPopulation: List<GeneticHanabiStrategy>,
         children: List<GeneticHanabiStrategy>
     ): List<GeneticHanabiStrategy> {
-        // TODO: Use elitism.
-        return listOf(oldPopulation, children).flatten().sortedByDescending { x -> x.getFitness() }.take(populationSize)
+        val newPopulation = mutableSetOf<GeneticHanabiStrategy>()
+        val elites = oldPopulation.take(elitismCount)
+        newPopulation.addAll(elites)
+        if (forceNewChildren) {
+            val bestChildren = children.sortedByDescending { x -> x.getFitness() }.take(populationSize - elitismCount)
+            newPopulation.addAll(bestChildren)
+            return newPopulation.toList()
+        }
+        val remainingOld = oldPopulation.takeLast(oldPopulation.size - elitismCount)
+        newPopulation.addAll(remainingOld)
+        newPopulation.addAll(children)
+        return newPopulation.sortedByDescending { x -> x.getFitness() }.take(populationSize)
     }
 
     override fun onEpochBeginning() {
         currentPopulation = currentPopulation.sortedByDescending { x -> x.getFitness() }
         val avg = currentPopulation.map { x -> x.getFitness() }.average()
-        println("Epoch %d, best fitness: %.3f, avg fitness: %.5f".format(epoch, currentPopulation[0].getFitness(), avg))
+        println("Epoch %d, best fitness: %.3f, avg fitness: %.5f, population size: %d".format(epoch, currentPopulation[0].getFitness(), avg, currentPopulation.size))
         println(currentPopulation.map { x -> x.getFitness() }.toString())
     }
 

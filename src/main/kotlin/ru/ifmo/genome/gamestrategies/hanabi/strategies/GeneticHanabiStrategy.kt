@@ -34,4 +34,17 @@ class GeneticHanabiStrategy(private val rules: List<HanabiAction>) : RuleBasedHa
         return rules
     }
 
+    override fun equals(other: Any?): Boolean {
+        if (other !is GeneticHanabiStrategy) return false
+        return rules == other.rules
+    }
+
+    override fun hashCode(): Int {
+        var result = rules.hashCode()
+        result = 31 * result + strategySize
+        result = 31 * result + mutationRate.hashCode()
+        result = 31 * result + fitness.hashCode()
+        return result
+    }
+
 }
