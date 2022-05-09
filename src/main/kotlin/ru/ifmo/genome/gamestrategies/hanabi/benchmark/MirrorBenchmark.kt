@@ -14,37 +14,40 @@ import ru.ifmo.genome.gamestrategies.hanabi.strategies.GeneticHanabiStrategy
 import kotlinx.serialization.encodeToString as jsonEncode
 
 class MirrorBenchmark {
-    private val seed = 0
 
-    private val client = HttpClient(CIO) {
-        install(WebSockets) {
-            // Configure WebSockets
+    companion object {
+        private const val seed = 0
+
+        private val client = HttpClient(CIO) {
+            install(WebSockets) {
+            }
         }
-    }
 
-    fun runBenchmark(individual: GeneticHanabiStrategy) {
-        runBlocking {
-            coroutineScope {
-                launch {
-                    client.webSocket(method = HttpMethod.Get, host = "127.0.0.1", port = 8765, path = "/") {
-                        send(Json.jsonEncode(RunConfiguration(10000, seed, List(2) { individual.getStrategy() })))
-                        println("2 players: " + (incoming.receive() as? Frame.Text)?.readText()!!)
+        fun runBenchmark(individual: GeneticHanabiStrategy) {
+            runBlocking {
+                coroutineScope {
+                    launch {
+                        client.webSocket(method = HttpMethod.Get, host = "127.0.0.1", port = 8765, path = "/") {
+                            send(Json.jsonEncode(RunConfiguration(10000, seed, List(2) { individual.getStrategy() })))
+                            println("2 players: " + (incoming.receive() as? Frame.Text)?.readText()!!)
+                        }
                     }
-                }
-                launch {
-                    client.webSocket(method = HttpMethod.Get, host = "127.0.0.1", port = 8765, path = "/") {
-                        send(Json.jsonEncode(RunConfiguration(10000, seed + 1, List(3) { individual.getStrategy() })))
-                        println("3 players: " + (incoming.receive() as? Frame.Text)?.readText()!!)
+                    launch {
+                        client.webSocket(method = HttpMethod.Get, host = "127.0.0.1", port = 8765, path = "/") {
+                            send(Json.jsonEncode(RunConfiguration(10000, seed + 1, List(3) { individual.getStrategy() })))
+                            println("3 players: " + (incoming.receive() as? Frame.Text)?.readText()!!)
+                        }
                     }
-                }
-                launch {
-                    client.webSocket(method = HttpMethod.Get, host = "127.0.0.1", port = 8765, path = "/") {
-                        send(Json.jsonEncode(RunConfiguration(10000, seed + 2, List(4) { individual.getStrategy() })))
-                        println("4 players: " + (incoming.receive() as? Frame.Text)?.readText()!!)
+                    launch {
+                        client.webSocket(method = HttpMethod.Get, host = "127.0.0.1", port = 8765, path = "/") {
+                            send(Json.jsonEncode(RunConfiguration(10000, seed + 2, List(4) { individual.getStrategy() })))
+                            println("4 players: " + (incoming.receive() as? Frame.Text)?.readText()!!)
+                        }
                     }
                 }
             }
         }
-
     }
+
+
 }

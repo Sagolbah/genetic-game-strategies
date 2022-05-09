@@ -1,13 +1,13 @@
 package ru.ifmo.genome.gamestrategies.hanabi
 
-import ru.ifmo.genome.gamestrategies.core.Environment
+import kotlinx.coroutines.*
 import ru.ifmo.genome.gamestrategies.core.GeneticAlgorithm
 import ru.ifmo.genome.gamestrategies.hanabi.strategies.GeneticHanabiStrategy
 import ru.ifmo.genome.gamestrategies.hanabi.strategies.randomAction
 import kotlin.random.Random
 
 class HanabiGeneticAlgorithm(
-    override val env: Environment<GeneticHanabiStrategy>,
+    override val env: HanabiEnvironment,
     private val epochs: Int,
     private val strategySize: Int = 7,
     private val populationSize: Int = 40,
@@ -26,8 +26,16 @@ class HanabiGeneticAlgorithm(
         }
     }
 
-    override fun evaluatePopulation(population: List<GeneticHanabiStrategy>) {
-        population.forEach { x -> if (x.getFitness() == -1.0) x.setFitness(env.fit(x)) }  // Use cached values
+    override suspend fun evaluatePopulation(population: List<GeneticHanabiStrategy>) {
+        coroutineScope {
+            population.map { x ->
+                async {
+                    if (x.getFitness() == -1.0) {  // Use cached values
+                        x.setFitness(env.fit(x))
+                    }
+                }
+            }.awaitAll()
+        }
     }
 
     override fun selectParents(): List<GeneticHanabiStrategy> {
@@ -65,7 +73,14 @@ class HanabiGeneticAlgorithm(
     override fun onEpochBeginning() {
         currentPopulation = currentPopulation.sortedByDescending { x -> x.getFitness() }
         val avg = currentPopulation.map { x -> x.getFitness() }.average()
-        println("Epoch %d, best fitness: %.3f, avg fitness: %.5f, population size: %d".format(epoch, currentPopulation[0].getFitness(), avg, currentPopulation.size))
+        println(
+            "Epoch %d, best fitness: %.3f, avg fitness: %.5f, population size: %d".format(
+                epoch,
+                currentPopulation[0].getFitness(),
+                avg,
+                currentPopulation.size
+            )
+        )
         println(currentPopulation.map { x -> x.getFitness() }.toString())
     }
 

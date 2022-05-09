@@ -18,7 +18,7 @@ abstract class GeneticAlgorithm<T : Individual<T>>(protected open val env: Envir
 
     abstract fun selectSurvivors(oldPopulation: List<T>, children: List<T>): List<T>
 
-    open fun evaluatePopulation(population: List<T>) {
+    open suspend fun evaluatePopulation(population: List<T>) {
         population.forEach { x -> x.setFitness(env.fit(x)) }
     }
 
@@ -28,7 +28,7 @@ abstract class GeneticAlgorithm<T : Individual<T>>(protected open val env: Envir
 
     open fun onEpochBeginning() {}
 
-    open fun evaluate() : List<T> {
+    open suspend fun evaluate() : List<T> {
         currentPopulation = initPopulation()
         evaluatePopulation(currentPopulation)
         while (!terminateCondition()) {
