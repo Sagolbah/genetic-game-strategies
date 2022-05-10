@@ -1,10 +1,13 @@
 package ru.ifmo.genome.gamestrategies.hanabi
 
 import kotlinx.coroutines.*
+import kotlinx.serialization.json.Json
 import ru.ifmo.genome.gamestrategies.core.GeneticAlgorithm
 import ru.ifmo.genome.gamestrategies.hanabi.strategies.GeneticHanabiStrategy
 import ru.ifmo.genome.gamestrategies.hanabi.strategies.randomAction
 import kotlin.random.Random
+import kotlinx.serialization.encodeToString as jsonEncode
+
 
 class HanabiGeneticAlgorithm(
     override val env: HanabiEnvironment,
@@ -81,6 +84,7 @@ class HanabiGeneticAlgorithm(
                 currentPopulation.size
             )
         )
+        println("Current best individual: " + Json.jsonEncode(currentPopulation[0].getStrategy()))
         println(currentPopulation.map { x -> x.getFitness() }.toString())
     }
 

@@ -28,10 +28,11 @@ fun main(args: Array<String>) {
 suspend fun runGeneticAlgorithm(env: HanabiEnvironment): List<GeneticHanabiStrategy> {
     val algorithm = HanabiGeneticAlgorithm(
         env,
-        epochs = 100,
+        epochs = 125,
         populationSize = 100,
         elitismCount = 10,
         strategySize = 8,
+        tournamentSize = 3,
         forceNewChildren = true
     )
     val result = algorithm.evaluate().sortedByDescending { x -> x.getFitness() }

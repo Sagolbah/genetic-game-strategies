@@ -99,7 +99,7 @@ sealed class HanabiAction {
     object NonHintedDiscard : HanabiAction()
 
     /**
-     * Discards card with highest rank
+     * Discards card with the highest rank
      */
     @Serializable
     @SerialName("HighestRankDiscard")
