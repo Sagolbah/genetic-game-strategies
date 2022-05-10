@@ -12,6 +12,7 @@ val hanabiActionPool: List<HanabiAction> = listOf(
     HanabiAction.RankHint(0),
     HanabiAction.RankHint(4),
     HanabiAction.StackDefenseHint(0),
+    HanabiAction.FutureStackDefenseHint(0),
     HanabiAction.RandomDiscard,
     HanabiAction.UselessDiscard,
     HanabiAction.NonHintedDiscard,
@@ -55,6 +56,7 @@ private fun rollRuleParameter(rule: HanabiAction): HanabiAction {
             emptyDeckProbabilityPlayParams.random()
         )
         is HanabiAction.StackDefenseHint -> HanabiAction.StackDefenseHint(stackDefenseParams.random())
+        is HanabiAction.FutureStackDefenseHint -> HanabiAction.FutureStackDefenseHint(stackDefenseParams.random())
         else -> rule
     }
 }

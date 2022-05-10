@@ -46,13 +46,22 @@ sealed class HanabiAction {
     object UnknownCardHint : HanabiAction()
 
     /**
-     * Tells a hint about card, which is the last possible one to play on the current stack
-     * Designed to prevent discarding of these cards
-     * @param maxRank max rank to trigger this rule
+     * Same as [FutureStackDefenseHint], but views only playable cards.
      */
     @Serializable
     @SerialName("StackDefenseHint")
     data class StackDefenseHint(@SerialName("value") val maxRank: Int) : HanabiAction()
+
+    /**
+     * Tells a hint about card, which is the last possible one to play on the current stack
+     * Designed to prevent discarding of these cards
+     * If multiple ranks in stack are in risk of being fully discarded, uses the lower one.
+     *
+     * @param maxRank max rank to trigger this rule
+     */
+    @Serializable
+    @SerialName("FutureStackDefenseHint")
+    data class FutureStackDefenseHint(@SerialName("value") val maxRank: Int) : HanabiAction()
 
     /**
      * Gives rank hint.

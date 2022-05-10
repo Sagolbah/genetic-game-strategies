@@ -195,6 +195,37 @@ def stack_defense_hint(observation, rng, max_rank):
     return rng.choice(hints) if hints else None
 
 
+def future_stack_defense_hint(observation, rng, max_rank):
+    if observation['information_tokens'] == 0:
+        return None
+    discard_pile = observation['discard_pile']
+    fireworks = observation['fireworks']
+    hints = []
+    most_possible = dict(zip(game_colors, map(lambda x: find_most_possible_rank(x, discard_pile), game_colors)))
+    discarded_possible = dict()
+    for card in discard_pile:
+        if fireworks[card['color']] <= most_possible[card['color']] and card['rank'] <= max_rank:
+            card_tuple = (card['color'], card['rank'])
+            discarded_possible[card_tuple] = discarded_possible.get(card_tuple, 0) + 1
+    colors_to_defend = {}
+    for rank in range(5):
+        for color in game_colors:
+            if fireworks[color] > rank:  # already placed - no need to call
+                pass
+            if colors_to_defend.get(color) is not None:  # use min rank for hint
+                pass
+            if discarded_possible.get((color, rank), -1) == cards_per_rank[rank] - 1:
+                colors_to_defend[color] = rank
+    if len(colors_to_defend) == 0:
+        return None  # do not iterate hands
+    for i in range(1, len(observation['observed_hands'])):
+        given_hints = observation['card_knowledge'][i]
+        for idx, card in enumerate(observation['observed_hands'][i]):
+            if (card['color'], card['rank']) in colors_to_defend:
+                hints += get_missing_hints(given_hints, idx, card, i)
+    return rng.choice(hints) if hints else None
+
+
 def non_hinted_discard(observation, rng):
     if observation['information_tokens'] == 8:
         return None
@@ -447,7 +478,8 @@ parametrized_action_map = {
     "ProbabilityPlay": probability_play,
     "EmptyDeckProbabilityPlay": empty_deck_probability_play,
     "RankHint": rank_hint,
-    "StackDefenseHint": stack_defense_hint
+    "StackDefenseHint": stack_defense_hint,
+    "FutureStackDefenseHint": future_stack_defense_hint
 }
 
 state_action_map = {
