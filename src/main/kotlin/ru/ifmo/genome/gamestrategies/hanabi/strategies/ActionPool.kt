@@ -1,11 +1,13 @@
 package ru.ifmo.genome.gamestrategies.hanabi.strategies
 
+import kotlin.random.Random
+
 /**
  * Pool of all available Hanabi actions.
  */
 val hanabiActionPool: List<HanabiAction> = listOf(
     HanabiAction.RandomHint,
-    HanabiAction.PlayableHint,
+    HanabiAction.PlayableHint(0),
     HanabiAction.CompletePlayableHint,
     HanabiAction.UselessCardHint,
     HanabiAction.UnknownCardHint,
@@ -51,6 +53,7 @@ fun randomAction(): HanabiAction {
 private fun rollRuleParameter(rule: HanabiAction): HanabiAction {
     return when (rule) {
         is HanabiAction.ProbabilityPlay -> HanabiAction.ProbabilityPlay(probabilityPlayParams.random())
+        is HanabiAction.PlayableHint -> HanabiAction.PlayableHint(Random.nextInt(3))
         is HanabiAction.EmptyDeckProbabilityPlay -> HanabiAction.EmptyDeckProbabilityPlay(
             emptyDeckProbabilityPlayParams.random()
         )

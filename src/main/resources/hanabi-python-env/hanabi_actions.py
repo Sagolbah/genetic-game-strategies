@@ -63,17 +63,33 @@ def empty_deck_probability_play(observation, rng, probability):
 
 
 # noinspection PyTypeChecker
-def playable_hint(observation, rng):
+def playable_hint(observation, rng, priority):
     if observation['information_tokens'] == 0:
         return None
-    playable_hints = []
+    priority = int(priority)
+    playable_hints_rank = []
+    playable_hints_color = []
     for i in range(1, len(observation['observed_hands'])):
         given_hints = observation['card_knowledge'][i]
         playable_cards = get_all_playable_cards(observation, i)
         for idx, card in playable_cards:
-            playable_hints += get_missing_hints(given_hints, idx, card, i)
-    if playable_hints:
-        return rng.choice(playable_hints)
+            if given_hints[idx]['rank'] is None:
+                playable_hints_rank.append({'action_type': 'REVEAL_RANK', 'target_offset': i, 'rank': card['rank']})
+            if given_hints[idx]['color'] is None:
+                playable_hints_color.append({'action_type': 'REVEAL_COLOR', 'target_offset': i, 'color': card['color']})
+    if priority == 0:
+        if playable_hints_rank or playable_hints_color:
+            return rng.choice(playable_hints_rank + playable_hints_color)
+    elif priority == 1:
+        if playable_hints_rank:
+            return rng.choice(playable_hints_rank)
+        elif playable_hints_color:
+            return rng.choice(playable_hints_color)
+    else:
+        if playable_hints_color:
+            return rng.choice(playable_hints_color)
+        elif playable_hints_rank:
+            return rng.choice(playable_hints_rank)
     return None
 
 
@@ -427,7 +443,6 @@ def get_missing_hints(given_hints, card_idx, card, offset):
 
 action_map = {
     "SafePlay": safe_play,
-    "PlayableHint": playable_hint,
     "CompletePlayableHint": complete_playable_hint,
     "RandomHint": random_hint,
     "NonHintedDiscard": non_hinted_discard,
@@ -446,6 +461,7 @@ action_map = {
 parametrized_action_map = {
     "ProbabilityPlay": probability_play,
     "EmptyDeckProbabilityPlay": empty_deck_probability_play,
+    "PlayableHint": playable_hint,
     "RankHint": rank_hint,
     "StackDefenseHint": stack_defense_hint
 }
