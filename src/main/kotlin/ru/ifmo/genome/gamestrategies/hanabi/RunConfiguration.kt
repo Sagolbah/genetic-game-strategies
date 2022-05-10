@@ -10,4 +10,4 @@ import ru.ifmo.genome.gamestrategies.hanabi.strategies.HanabiAction
  * @param players participating strategies, one agent can be used multiple times for mirror matches
  */
 @Serializable
-data class RunConfiguration(val rounds: Int, val seed: Int, val players: List<List<HanabiAction>>)
+data class RunConfiguration(val rounds: Int, val seed: Int, @Serializable val players: List<List<HanabiAction>>)

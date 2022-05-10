@@ -6,7 +6,7 @@ import ru.ifmo.genome.gamestrategies.hanabi.strategies.RuleBasedHanabiStrategy
 val IGGI = RuleBasedHanabiStrategy {
     listOf(
         HanabiAction.SafePlay,
-        HanabiAction.PlayableHint(0),
+        HanabiAction.PlayableHint,
         HanabiAction.UselessDiscard,
         HanabiAction.OldestDiscard
     )
@@ -26,7 +26,7 @@ val Outer = RuleBasedHanabiStrategy {
     listOf(
         HanabiAction.SafePlay,
         HanabiAction.UselessDiscard,
-        HanabiAction.PlayableHint(0),
+        HanabiAction.PlayableHint,
         HanabiAction.RandomHint,
         HanabiAction.RandomDiscard
     )
@@ -39,7 +39,7 @@ val VanDenBergh = RuleBasedHanabiStrategy {
         HanabiAction.ProbabilityPlay(0.6),
         HanabiAction.SafePlay,
         HanabiAction.UselessDiscard,
-        HanabiAction.PlayableHint(0),
+        HanabiAction.PlayableHint,
         HanabiAction.UselessCardHint,
         HanabiAction.GreedyHint,
         HanabiAction.VDBProbabilityDiscard
@@ -62,7 +62,7 @@ val Piers = RuleBasedHanabiStrategy {
         HanabiAction.EmptyDeckProbabilityPlay(0.0),
         HanabiAction.SafePlay,
         HanabiAction.ProbabilityPlay(0.6),
-        HanabiAction.PlayableHint(0),
+        HanabiAction.PlayableHint,
         HanabiAction.PiersUselessCardHint,
         HanabiAction.UselessDiscard,
         HanabiAction.OldestDiscard,
@@ -73,7 +73,7 @@ val Piers = RuleBasedHanabiStrategy {
 
 val OnePlusOneGenerated = RuleBasedHanabiStrategy {
     listOf(
-        HanabiAction.PlayableHint(0),
+        HanabiAction.PlayableHint,
         HanabiAction.ProbabilityPlay(0.5),
         HanabiAction.UselessDiscard,
         HanabiAction.NonHintedDiscard,

@@ -19,12 +19,10 @@ sealed class HanabiAction {
     /**
      * Tells a hint on any playable, not fully known card.
      * If card is known partially, completes it.
-     *
-     * @param priority: 0 - do not use priority, 1 - prioritize rank, 2 - prioritize color
      */
     @Serializable
     @SerialName("PlayableHint")
-    data class PlayableHint(@SerialName("value") val priority: Int) : HanabiAction()
+    object PlayableHint : HanabiAction()
 
     /**
      * If a playable card was hinted color or rank, performs second hint with missing information.
