@@ -123,8 +123,10 @@ def rank_hint(observation, rng, rank):
     if observation['information_tokens'] == 0:
         return None
     rank = int(rank)
-    move = {'action_type': 'REVEAL_RANK', 'target_offset': 1, 'rank': rank}
-    return move if any(map(lambda x: x['rank'] == rank, observation['observed_hands'][1])) else None
+    for i in range(1, len(observation['observed_hands'])):
+        move = {'action_type': 'REVEAL_RANK', 'target_offset': i, 'rank': rank}
+        return move if any(map(lambda x: x['rank'] == rank, observation['observed_hands'][1])) else None
+    return None
 
 
 def piers_useless_card_hint(observation, rng):

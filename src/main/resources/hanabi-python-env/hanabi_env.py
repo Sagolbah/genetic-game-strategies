@@ -111,7 +111,7 @@ def evaluate(message):
     return fitness
 
 
-pool = concurrent.futures.ProcessPoolExecutor(max_workers = 6)
+pool = concurrent.futures.ProcessPoolExecutor(max_workers = 8)
 
 
 async def fit(websocket):
