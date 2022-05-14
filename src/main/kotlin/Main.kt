@@ -28,7 +28,7 @@ fun main(args: Array<String>) {
 suspend fun runGeneticAlgorithm(env: HanabiEnvironment): List<GeneticHanabiStrategy> {
     val algorithm = HanabiGeneticAlgorithm(
         env,
-        epochs = 125,
+        epochs = 200,
         populationSize = 100,
         elitismCount = 10,
         strategySize = 8,

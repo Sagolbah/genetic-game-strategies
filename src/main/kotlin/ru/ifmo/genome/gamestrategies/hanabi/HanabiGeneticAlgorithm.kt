@@ -16,7 +16,7 @@ class HanabiGeneticAlgorithm(
     private val populationSize: Int = 40,
     private val tournamentSize: Int = 3,
     private val elitismCount: Int = 4,
-    private val forceNewChildren: Boolean = false  // If true, all parents except top $elitismCount are eliminated.
+    private val forceNewChildren: Boolean = true  // If true, all parents except top $elitismCount are eliminated.
 ) : GeneticAlgorithm<GeneticHanabiStrategy>(env) {
 
     override fun terminateCondition(): Boolean {
@@ -75,12 +75,11 @@ class HanabiGeneticAlgorithm(
 
     override fun onEpochBeginning() {
         currentPopulation = currentPopulation.sortedByDescending { x -> x.getFitness() }
-        val avg = currentPopulation.map { x -> x.getFitness() }.average()
         println(
-            "Epoch %d, best fitness: %.3f, avg fitness: %.5f, population size: %d".format(
+            "Epoch %d, best fitness: %.3f, avg across elites: %.5f, population size: %d".format(
                 epoch,
                 currentPopulation[0].getFitness(),
-                avg,
+                currentPopulation.take(elitismCount).map { x -> x.getFitness() }.average(),
                 currentPopulation.size
             )
         )
