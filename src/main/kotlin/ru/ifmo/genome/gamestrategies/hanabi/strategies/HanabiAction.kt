@@ -195,4 +195,45 @@ sealed class HanabiAction {
     @SerialName("GreedyHint")
     object GreedyHint : HanabiAction()
 
+    /**
+     * Tells any missing information, used in Outer agent. Prioritizes color hints
+     * (as stated in https://github.com/fossgalaxy/hanabi)
+     * Implemented after research, therefore it's not presented in pool, but can be added later
+     */
+    @Serializable
+    @SerialName("UnknownOuterHint")
+    object UnknownOuterHint : HanabiAction()
+
+    /**
+     * Interpretation of [PlayableHint] featured in Walton-Rivers agents and HOAD.
+     *
+     * Loops in order of player turns and card slots, giving the hint on first applicable card.
+     * Prioritizes rank hints.
+     *
+     * Implemented after research, therefore it's not presented in pool, but can be added in next version
+     * (possibly as PlayableHint's parameter)
+     */
+    @Serializable
+    @SerialName("WaltonPlayableHint")
+    object WaltonPlayableHint : HanabiAction()
+
+    /**
+     * Same as [ProbabilityPlay], but uses probabilities for unknown cards (more complex version)
+     * Used in Van den Bergh and Piers agents
+     *
+     * Applicable for more difficult action pools due to additional probability calculation. May outperform default
+     * ProbabilityPlay because of it.
+     *
+     * Implemented after research.
+     */
+    @Serializable
+    @SerialName("FullProbabilityPlay")
+    data class FullProbabilityPlay(val value: Double) : HanabiAction()
+
+    /**
+     * Same as [FullProbabilityPlay], but triggers on empty deck
+     */
+    @Serializable
+    @SerialName("FullEmptyDeckProbabilityPlay")
+    data class FullEmptyDeckProbabilityPlay(val value: Double) : HanabiAction()
 }

@@ -28,19 +28,19 @@ class MirrorBenchmark {
                 coroutineScope {
                     launch {
                         client.webSocket(method = HttpMethod.Get, host = "127.0.0.1", port = 8765, path = "/") {
-                            send(Json.jsonEncode(RunConfiguration(10000, seed, List(2) { individual.getStrategy() })))
+                            send(Json.jsonEncode(RunConfiguration(10000, seed, List(2) { individual.getStrategy() }, true)))
                             println("2 players: " + (incoming.receive() as? Frame.Text)?.readText()!!)
                         }
                     }
                     launch {
                         client.webSocket(method = HttpMethod.Get, host = "127.0.0.1", port = 8765, path = "/") {
-                            send(Json.jsonEncode(RunConfiguration(10000, seed + 1, List(3) { individual.getStrategy() })))
+                            send(Json.jsonEncode(RunConfiguration(10000, seed + 1, List(3) { individual.getStrategy() }, true)))
                             println("3 players: " + (incoming.receive() as? Frame.Text)?.readText()!!)
                         }
                     }
                     launch {
                         client.webSocket(method = HttpMethod.Get, host = "127.0.0.1", port = 8765, path = "/") {
-                            send(Json.jsonEncode(RunConfiguration(10000, seed + 2, List(4) { individual.getStrategy() })))
+                            send(Json.jsonEncode(RunConfiguration(10000, seed + 2, List(4) { individual.getStrategy() }, true)))
                             println("4 players: " + (incoming.receive() as? Frame.Text)?.readText()!!)
                         }
                     }

@@ -5,7 +5,7 @@ import asyncio
 import random
 
 import websockets
-from statistics import mean
+from statistics import mean, stdev
 from hanabi_learning_environment import rl_env, pyhanabi
 from hanabi_actions import action, terminal_safe_legal_random
 
@@ -103,11 +103,14 @@ class Runner(object):
 
 
 def evaluate(message):
-    runner = Runner(json.loads(message))
+    msg = json.loads(message)
+    runner = Runner(msg)
     rewards = runner.run()
     fitness = mean(rewards)
     print(f">>> {rewards}")
     print("Average: " + str(fitness))
+    if 'logStdev' in msg and msg['logStdev']:
+        print("Standard deviation: " + str(stdev(rewards)))
     return fitness
 
 

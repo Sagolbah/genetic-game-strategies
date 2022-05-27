@@ -32,14 +32,14 @@ def safe_play(observation, rng):
     return None
 
 
-def probability_play(observation, rng, probability):
+def probability_play(observation, rng, probability, default_best=-1, default_idx=-1):
     if observation['life_tokens'] == 1:  # do not take risk if we can't lose life tokens
         return None
     safe_attempt = safe_play(observation, rng)
     if safe_attempt is not None:  # corner case -- a safe card with probability 1
         return safe_attempt
-    best_prob = -1
-    best_idx = -1
+    best_prob = default_best
+    best_idx = default_idx
     for card_index, hint in enumerate(observation['card_knowledge'][0]):
         if hint['color'] is not None and hint['rank'] is None:
             prob = get_probability_for_color(observation, hint['color'])
@@ -60,6 +60,47 @@ def empty_deck_probability_play(observation, rng, probability):
     if observation['deck_size'] != 0 or observation['life_tokens'] == 1:
         return None
     return probability_play(observation, rng, probability)
+
+
+def full_probability_play(observation, rng, probability):
+    if observation['life_tokens'] == 1:  # do not take risk if we can't lose life tokens
+        return None
+    hint_idx = -1
+    for idx, card in enumerate(observation['card_knowledge'][0]):
+        if card['rank'] is None and card['color'] is None:
+            hint_idx = idx
+    if hint_idx == -1:
+        return probability_play(observation, rng, probability)
+    cards_left = {}
+    for color in game_colors:
+        cards_left[color] = cards_per_rank.copy()
+    for card in observation['discard_pile']:
+        cards_left[card['color']][card['rank']] -= 1
+    for i in range(1, len(observation['observed_hands'])):
+        for card in observation['observed_hands'][i]:
+            cards_left[card['color']][card['rank']] -= 1
+    for card in observation['card_knowledge'][0]:
+        if card['rank'] is not None and card['color'] is not None:
+            cards_left[card['color']][card['rank']] -= 1
+    for color in game_colors:
+        for i in range(observation['fireworks'][color]):
+            cards_left[color][i] -= 1
+    possible_cards = 0
+    playable_cards = 0
+    for color in game_colors:
+        for rank in range(5):
+            possible_cards += cards_left[color][rank]
+            if observation['fireworks'][color] == rank:
+                playable_cards += cards_left[color][rank]
+    assert possible_cards >= 0 and playable_cards >= 0
+    prob = 0 if possible_cards == 0 else playable_cards / possible_cards
+    return probability_play(observation, rng, probability, default_best=prob, default_idx=hint_idx)
+
+
+def full_empty_deck_probability_play(observation, rng, probability):
+    if observation['deck_size'] != 0 or observation['life_tokens'] == 1:
+        return None
+    return full_probability_play(observation, rng, probability)
 
 
 # noinspection PyTypeChecker
@@ -99,6 +140,20 @@ def weak_playable_hint(observation, rng):
     return rng.choice(hints) if hints else None
 
 
+def walton_playable_hint(observation, rng):
+    if observation['information_tokens'] == 0:
+        return None
+    for i in range(1, len(observation['observed_hands'])):
+        given_hints = observation['card_knowledge'][i]
+        playable_cards = get_all_playable_cards(observation, i)
+        for idx, card in playable_cards:
+            if given_hints[idx]['rank'] is None:
+                return {'action_type': 'REVEAL_RANK', 'target_offset': i, 'rank': card['rank']}
+            elif given_hints[idx]['color'] is None:
+                return {'action_type': 'REVEAL_COLOR', 'target_offset': i, 'color': card['color']}
+    return None
+
+
 def random_hint(observation, rng):
     if observation['information_tokens'] > 0:
         moves = list(filter(lambda x: x['action_type'].startswith('REVEAL'), observation['legal_moves']))
@@ -130,9 +185,33 @@ def rank_hint(observation, rng, rank):
 
 
 def piers_useless_card_hint(observation, rng):
-    if observation['information_tokens'] >= 4:
+    if observation['information_tokens'] >= 4 or observation['information_tokens'] == 0:
         return None
-    return useless_card_hint(observation, rng)
+    for i in range(1, len(observation['observed_hands'])):
+        given_hints = observation['card_knowledge'][i]
+        for idx, card in enumerate(observation['observed_hands'][i]):
+            if given_hints[idx]['color'] is None:
+                if observation['fireworks'][card['color']] == 5:
+                    return {'action_type': 'REVEAL_COLOR', 'target_offset': i, 'color': card['color']}
+            if given_hints[idx]['rank'] is None:
+                if card['rank'] < min(observation['fireworks'].values()):
+                    return {'action_type': 'REVEAL_RANK', 'target_offset': i, 'rank': card['rank']}
+            if (given_hints[idx]['rank'] is None) ^ (given_hints[idx]['color'] is None):
+                if card['rank'] < observation['fireworks'][card['color']]:
+                    hints = get_missing_hints(given_hints, idx, card, i)
+                    return hints[0]
+    return None
+
+
+def unknown_outer_hint(observation, rng):
+    if observation['information_tokens'] == 0:
+        return None
+    for i in range(1, len(observation['observed_hands'])):
+        given_hints = observation['card_knowledge'][i]
+        for idx, card in enumerate(observation['observed_hands'][i]):
+            hints = get_missing_hints(given_hints, idx, card, i)
+            return rng.choice(hints) if hints else None
+    return None
 
 
 def greedy_hint(observation, rng):
@@ -385,7 +464,9 @@ def get_probability_for_color(observation, color):
         if card['color'] == color and card['rank'] is not None:
             possible_cards -= 1
             assert not playable_card(card, observation['fireworks'])
-    return playable_cards / possible_cards
+    possible_cards -= observation['fireworks'][color]
+    assert possible_cards >= 0
+    return 0 if possible_cards == 0 else playable_cards / possible_cards
 
 
 def get_probability_for_rank(observation, rank):
@@ -406,7 +487,9 @@ def get_probability_for_rank(observation, rank):
         if card['rank'] == rank and card['color'] is not None:
             possible_cards -= 1
             assert not playable_card(card, observation['fireworks'])
-    return playable_cards / possible_cards
+    possible_cards -= sum(1 for x in observation['fireworks'].values() if x > rank)
+    assert possible_cards >= 0
+    return 0 if possible_cards == 0 else playable_cards / possible_cards
 
 
 def vdb_useless_probability_for_color(observation, color):
@@ -421,6 +504,8 @@ def vdb_useless_probability_for_color(observation, color):
     for card in observation['card_knowledge'][0]:
         if card['color'] == color and card['rank'] is not None:
             possible_cards[card['rank']] -= 1
+    for i in range(observation['fireworks'][color]):
+        possible_cards[i] -= 1
     useless_cards = 0
     possible_sum = sum(possible_cards.values())
     for k, v in possible_cards.items():
@@ -441,6 +526,9 @@ def vdb_useless_probability_for_rank(observation, rank):
     for card in observation['card_knowledge'][0]:
         if card['rank'] == rank and card['color'] is not None:
             possible_cards[card['color']] -= 1
+    for color in game_colors:
+        if observation['fireworks'][color] > rank:
+            possible_cards[color] -= 1
     useless_cards = 0
     possible_sum = sum(possible_cards.values())
     for k, v in possible_cards.items():
@@ -473,7 +561,9 @@ action_map = {
     "GreedyHint": greedy_hint,
     "UnknownCardHint": unknown_card_hint,
     "VDBProbabilityDiscard": vdb_probability_discard,
-    "HighestRankDiscard": highest_rank_discard
+    "HighestRankDiscard": highest_rank_discard,
+    "UnknownOuterHint": unknown_outer_hint,
+    "WaltonPlayableHint": walton_playable_hint
 }
 
 parametrized_action_map = {
@@ -481,7 +571,9 @@ parametrized_action_map = {
     "EmptyDeckProbabilityPlay": empty_deck_probability_play,
     "RankHint": rank_hint,
     "StackDefenseHint": stack_defense_hint,
-    "FutureStackDefenseHint": future_stack_defense_hint
+    "FutureStackDefenseHint": future_stack_defense_hint,
+    "FullProbabilityPlay": full_probability_play,
+    "FullEmptyDeckProbabilityPlay": full_empty_deck_probability_play
 }
 
 state_action_map = {

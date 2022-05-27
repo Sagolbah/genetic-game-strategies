@@ -19,14 +19,14 @@ val hanabiActionPool: List<HanabiAction> = listOf(
     HanabiAction.HighestRankDiscard,
     HanabiAction.SafePlay,
     HanabiAction.ProbabilityPlay(0.5),
-    HanabiAction.EmptyDeckProbabilityPlay(0.0),
+    HanabiAction.EmptyDeckProbabilityPlay(0.1),
     HanabiAction.OldestDiscard
 )
 
 /**
  * Parameter values for [HanabiAction.ProbabilityPlay]
  */
-val probabilityPlayParams = listOf(0.0, 0.2, 0.4, 0.5, 0.6, 0.8)
+val probabilityPlayParams = listOf(0.0, 0.2, 0.4, 0.5, 0.6, 0.8, 0.9)
 
 /**
  * Parameter values for [HanabiAction.EmptyDeckProbabilityPlay]
